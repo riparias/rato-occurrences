@@ -1,9 +1,8 @@
 ---
 title: "Darwin Core mapping"
-subtitle: "For: The (...) occurrences of "
+subtitle: "For: RATO - daily operations commissioned by the province East Flanders, Belgium"
 author:
-- author_1
-- author_2
+- Lien Reyserhove
 date: "`r Sys.Date()`"
 output:
   html_document:
@@ -12,11 +11,6 @@ output:
     toc: yes
     toc_depth: 3
     toc_float: yes
-#  pdf_document:
-#    df_print: kable
-#    number_sections: yes
-#    toc: yes
-#    toc_depth: 3
 ---
 
 # Setup 
@@ -29,7 +23,7 @@ Install required libraries (only if the libraries have not been installed before
 
 ```{r}
 installed <- rownames(installed.packages())
-required <- c("tidyverse", "tidylog", "magrittr", "here", "janitor", "readxl", "digest", "rgbif")
+required <- c("tidyverse", "tidylog", "magrittr", "here", "janitor", "readxl", "digest", "rgbif", "DBI", "RSQLite")
 if (!all(required %in% installed)) {
   install.packages(required[!required %in% installed])
 }
@@ -43,8 +37,12 @@ library(tidylog)        # To provide feedback on dplyr functions
 library(magrittr)       # To use %<>% pipes
 library(here)           # To find files
 library(janitor)        # To clean input data
-library(digest)         # To generate hashes
+library(DBI)            # To create and query databases
+library(RSQLite)        # To work with SQLite databases in R
+library(rgbif)
+library(purrr)
 ```
+
 
 # Read source data
 
@@ -56,472 +54,37 @@ input_data <- read.csv(file = here("data", "raw", "rato_data.csv"),
                        sep = ",") 
 ```
 
-Preview data:
+# Add scientific name
 
-```{r}
-input_data %>% head(n = 5)
-```
-
-# Process source data
-
-## Tidy data
-
-Clean data somewhat:
+Add scientific names based on `gbif_code`
 
 ```{r}
 input_data <- 
   input_data %>% 
-    remove_empty("rows") %>% 
-    clean_names()
+  mutate(scientificName = purrr::map_chr(
+  .data$GBIF_Code,
+    function(x) {
+    rgbif::name_usage(x)$data %>% pull(scientificName)
+  })
+)
+input_data
 ```
 
-`object_id` is the unique identifier for each occurrence. This will be the `occurrenceID`
-`dossier_id` is the unique identifier for each sampling event. This will be the `eventID`
+## Create database
 
-Check whether `object_id` is unique (value should be `0`)
+Create a SQLite database with the source data, so it can be queried with SQL in the next steps:
 
-```{r}
-anyDuplicated(input_data$dossier_id)
+```{r create_db}
+rato_db <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
+# Import data
+DBI::dbWriteTable(rato_db, "input_data", input_data)
 ```
 
-Remove all rows for `Domein` = `Werken` 
+# Darwin Core mapping
 
-```{r}
-input_data %<>% filter(domein != "Werken")
-```
-## Add eventID and occurrenceID
+Create [Event Core](link):
 
-```{r}
-input_data %<>% mutate(occurrence_id = dossier_id)
-```
-# Event core
-
-## Pre-processing
-
-Create a dataframe with unique taxa only (ignoring multiple distribution rows):
-
-```{r}
-event <- input_data %>% distinct(occurrence_id, .keep_all = TRUE)
-```
-
-## Term mapping
-
-Start with record-level terms which contain metadata about the dataset (which is generally the same for all records).
-
-### type
-
-```{r}
-event %>% mutate(dwc_type = "Event")
-```
-
-### language
-
-```{r}
-event %<>% mutate(dwc_language = "en")
-```
-
-### license
-
-```{r}
-event %<>% mutate(dwc_license = "http://creativecommons.org/publicdomain/zero/1.0/")
-```
-
-### rightsHolder
-
-```{r}
-event %<>% mutate(dwc_rightsHolder = "RATO")
-```
-
-### datasetID
-
-```{r}
-event %<>% mutate(dwc_datasetID = "")
-```
-
-### institutionCode
-
-```{r}
-event %<>% mutate(dwc_institutionCode = "RATO")
-```
-
-### datasetName
-
-```{r}
-event %<>% mutate(dwc_datasetName = "RATO - daily operations commissioned by the province East Flanders, Belgium")
-```
-
-### basisOfRecord
-
-```{r}
-event %<>% mutate(dwc_basisOfRecord = "humanObservation")
-```
-
-The following terms contain information about the sampling event:
-
-### eventID
-
-```{r}
-event %<>% mutate(dwc_eventID = occurrence_id)
-```
-
-## recordedBy
-
-```{r}
-event %<>% mutate(dwc_recordedBy = "RATO")
-```
-## organismQuantity, organismQuantityType and occurrenceStatus
-
-Information is included in `waarnemingen`
-
-**splitsen obv separator**
-
-```{r}
-occurrence %>% 
-  group_by(waarneming) %>% 
-  summarise(records = n())
-```
-
-
-## organismQuantityType
-
-## occurrenceStatus
-
-## samplingProtocol
-
-```{r}
-event %>% 
-  group_by(materiaal_vast) %>% 
-  summarise(records = n()) %>% 
-  arrange (records)
-```
-
-## samplingEffort
-
-## eventDate
-
-```{r}
-occurrence %>% 
-  group_by(aangemaakt_datum) %>% 
-  summarise(records = n()) %>% 
-  arrange (records)
-```
-
-Map as date in ISO format:
-
-```{r}
-occurrence %<>% mutate(dwc_eventDate = as.Date(aangemaakt_datum)) 
-```
-## countryCode
-
-```{r}
-occurrence %<>% mutate(dwc_countryCode = "BE") 
-```
-
-## verbatimLatitude
-
-```{r}
-occurrence %<>% mutate(dwc_verbatimLatitude = y) 
-```
-## verbatimLongitude
-
-```{r}
-occurrence %<>% mutate(dwc_verbatimLongitude = x) 
-```
-## verbatimCoordinateSystem
-
-```{r}
-occurrence %<>% mutate(dwc_verbatimCoordinateSystem = "Lambert coordinates" ) 
-```
-
-## verbatimSRS
-
-```{r}
-occurrence %<>% mutate(dwc_verbatimSRS = "Belgian Datum 1972" ) 
-```
-
-
-## decimalLatitude and decimalLongitude
-
-```{r}
-occurrence <- 
-  occurrence %>%
-    st_as_sf(coords = c("x", "y"), crs = 31370) %>%
-    st_transform(crs = 4326) %>%
-    st_coordinates() %>%
-    as.data.frame() %>%
-    rename(dwc_decimalLongitude = X,
-           dwc_decimalLatitude = Y) %>%
-    bind_cols(occurrence) %>%
-    relocate(colnames(occurrence))
-head(occurrence)
-```
-
-## geodeticDatum
-
-```{r}
-occurrence %<>% mutate(dwc_geodeticDatum = "WGS84" ) 
-```
-
-## coordinateUncertainty
-
-```{r}
-occurrence %<>% mutate(dwc_coordinateUncertainty = "30") 
-```
-
-
-### scientificName
-
-
-
-### kingdom
-
-Inspect values:
-
-```{r}
-occurrence %>%
-  group_by(domein) %>%
-  count()
-```
-
-Map values:
-
-```{r}
-occurrence %>% mutate(dwc_kingdom = case_when(
-  domein == "Dier" ~ "Animalia",
-  domein == "Plant" ~ "Plantae"
-))
-```
-
-
-### taxonRank
-
-Inspect values:
-
-```{r}
-taxon %>%
-  group_by(rankmarker) %>%
-  count()
-```
-
-Map values by recoding to the [GBIF rank vocabulary](http://rs.gbif.org/vocabulary/gbif/rank_2015-04-24.xml):
-
-```{r}
-taxon %<>% mutate(dwc_taxonRank = recode(rankmarker,
-  "agg."      = "speciesAggregate",
-  "infrasp."  = "infraspecificname",
-  "sp."       = "species",
-  "var."      = "variety",
-  .default    = "",
-  .missing    = ""
-))
-```
-
-Inspect mapped values: 
-
-```{r}
-taxon %>%
-  group_by(rankmarker, dwc_taxonRank) %>%
-  count()
-```
-
-### nomenclaturalCode
-
-```{r}
-taxon %<>% mutate(dwc_nomenclaturalCode = "my_nomenclaturalCode") # e.g. "ICZN"
-```
-
-## Post-processing
-
-Only keep the Darwin Core columns:
-
-```{r}
-taxon %<>% select(starts_with("dwc_"))
-```
-
-Drop the `dwc_` prefix:
-
-```{r}
-colnames(taxon) <- str_remove(colnames(taxon), "dwc_")
-```
-
-Preview data:
-
-```{r}
-taxon %>% head()
-```
-
-Save to CSV:
-
-```{r}
-write_csv(taxon, here("data", "processed", "taxon.csv"), na = "")
-```
-
-# Distribution extension
-
-## Pre-processing
-
-Create a dataframe with all data:
-
-```{r}
-distribution <- input_data
-```
-
-## Term mapping
-
-Map the data to [Species Distribution](http://rs.gbif.org/extension/gbif/1.0/distribution.xml).
-
-### taxonID
-
-```{r}
-distribution %<>% mutate(dwc_taxonID = taxon_id)
-```
-
-### locality
-
-Inspect values:
-
-```{r}
-distribution %>%
-  group_by(country_code, locality) %>%
-  count()
-```
-
-Map values to `locality` if provided, otherwise use the country name:
-
-```{r}
-distribution %<>% mutate(dwc_locality = case_when(
-  !is.na(locality) ~ locality,
-  country_code == "BE" ~ "Belgium",
-  country_code == "GB" ~ "United Kingdom",
-  country_code == "MK" ~ "Macedonia",
-  country_code == "NL" ~ "The Netherlands",
-  TRUE ~ "" # In other cases leave empty
-))
-```
-
-Inspect mapped values: 
-
-```{r}
-distribution %>%
-  group_by(country_code, locality, dwc_locality) %>%
-  count()
-```
-
-### countryCode
-
-Inspect values:
-
-```{r}
-distribution %>%
-  group_by(country_code) %>%
-  count()
-```
-
-Map values:
-
-```{r}
-distribution %<>% mutate(dwc_countryCode = country_code) 
-```
-
-### occurrenceStatus
-
-Inspect values:
-
-```{r}
-distribution %>%
-  group_by(occurrence_status) %>%
-  count()
-```
-
-Map values:
-
-```{r}
-distribution %<>% mutate(dwc_occurrenceStatus = occurrence_status) 
-```
-
-### threatStatus
-
-Inspect values:
-
-```{r}
-distribution %>%
-  group_by(threat_status) %>%
-  count()
-```
-
-Map values by recoding to the [IUCN threat status vocabulary](http://rs.gbif.org/vocabulary/iucn/threat_status.xml):
-
-```{r}
-distribution %<>% mutate(dwc_threatStatus = recode(threat_status,
-  "endangered" = "EN",
-  "vulnerable" = "VU"
-))
-```
-
-Inspect mapped values: 
-
-```{r}
-distribution %>%
-  group_by(threat_status, dwc_threatStatus) %>%
-  count()
-```
-
-### source
-
-Inspect values:
-
-```{r}
-distribution %>%
-  group_by(source) %>%
-  count() %>%
-  head() # Remove to show all values
-```
-
-Map values:
-
-```{r}
-distribution %<>% mutate(dwc_source = source) 
-```
-
-### occurrenceRemarks
-
-Inspect values:
-
-```{r}
-distribution %>%
-  group_by(remarks) %>%
-  count() %>%
-  head() # Remove to show all values
-```
-
-Map values:
-
-```{r}
-distribution %<>% mutate(dwc_occurrenceRemarks = remarks) 
-```
-
-## Post-processing
-
-Only keep the Darwin Core columns:
-
-```{r}
-distribution %<>% select(starts_with("dwc_"))
-```
-
-Drop the `dwc_` prefix:
-
-```{r}
-colnames(distribution) <- str_remove(colnames(distribution), "dwc_")
-```
-
-Preview data:
-
-```{r}
-distribution %>% head()
-```
-
-Save to CSV:
-
-```{r}
-write_csv(distribution, here("data", "processed", "distribution.csv"), na = "")
+```{r occurrence}
+dwc_event_sql <- glue::glue_sql(readr::read_file(here::here("sql", "dwc_event.sql")), .con = rato_db)
+dwc_event <- DBI::dbGetQuery(rato_db, dwc_event_sql)
 ```
