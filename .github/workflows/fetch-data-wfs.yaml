@@ -36,6 +36,10 @@ jobs:
       - name: setup pandoc
         uses: r-lib/actions/setup-pandoc@master
 
+      - name: install libsodium-dev
+        run: |
+          sudo apt install libsodium-dev
+
       - name: Read data from WFS
         run: |
           source("src/read_data_from_wfs.R")
