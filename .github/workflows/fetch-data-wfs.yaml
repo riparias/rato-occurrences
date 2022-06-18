@@ -2,7 +2,7 @@ on:
   schedule:
     - cron: "0 * * * *"
 
-name: run-mapping-and-tests
+name: fetch-data-wfs
 
 jobs:
   fetch-data-from-WFS:
