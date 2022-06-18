@@ -36,9 +36,10 @@ jobs:
       - name: setup pandoc
         uses: r-lib/actions/setup-pandoc@master
 
-      - name: install libsodium-dev
+      - name: install linux libraries
         run: |
           sudo apt install libsodium-dev
+          sudo apt-get install libcurl4-openssl-dev
 
       - name: Read data from WFS
         run: |
