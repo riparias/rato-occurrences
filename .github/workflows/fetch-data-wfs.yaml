@@ -5,7 +5,7 @@ on:
 name: fetch-data-wfs
 
 jobs:
-  fetch-data-from-WFS:
+  fetch-data-from-wfs:
     runs-on: ${{ matrix.config.os }}
 
     name: ${{ matrix.config.os }} (${{ matrix.config.r }})
