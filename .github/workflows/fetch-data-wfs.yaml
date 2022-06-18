@@ -1,6 +1,7 @@
 on:
-  schedule:
-    - cron: '30 * * * *'
+  push:
+    branches:
+    - read-wfs
 
 name: fetch-data-wfs
 
