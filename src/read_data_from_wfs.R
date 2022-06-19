@@ -2,7 +2,7 @@
 
 # install needed packages
 installed <- rownames(installed.packages())
-required <- c("httr", "sf", "ows4R", "here")
+required <- c("httr", "ows4R", "here")
 if (!all(required %in% installed)) {
   pkgs_to_install <- required[!required %in% installed]
   print(paste("Packages to install:", paste(pkgs_to_install, collapse = ", ")))
