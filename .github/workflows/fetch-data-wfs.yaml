@@ -3,7 +3,7 @@ on:
     branches:
     - read-wfs
   schedule:
-    cron: "5 * * * *"
+    - cron: "5 * * * *"
 
 name: fetch-data-wfs
 
