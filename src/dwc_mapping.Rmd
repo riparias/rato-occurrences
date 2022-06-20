@@ -63,6 +63,21 @@ Preview data:
 input_data %>% head(n = 5)
 ```
 
+
+New version raw data as downloaded via `read_data_from_wfs.R`:
+
+```{r}
+input_data_new <- readr::read_csv(
+  here::here("data", "raw", "rato_data_new.csv")
+) 
+```
+
+New columns have been added:
+
+```{r}
+names(input_data_new)[!names(input_data_new) %in% names(input_data)]
+```
+
 # Process source data
 
 ## Tidy data
