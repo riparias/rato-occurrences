@@ -39,11 +39,11 @@ Load libraries:
 
 ```{r message = FALSE}
 library(tidyverse)      # To do data science
-library(tidylog)        # To provide feedback on dplyr functions
 library(magrittr)       # To use %<>% pipes
 library(here)           # To find files
 library(janitor)        # To clean input data
 library(digest)         # To generate hashes
+library(rgbif)
 library(sf)
 ```
 
@@ -61,21 +61,6 @@ Preview data:
 
 ```{r}
 input_data %>% head(n = 5)
-```
-
-
-New version raw data as downloaded via `read_data_from_wfs.R`:
-
-```{r}
-input_data_new <- readr::read_csv(
-  here::here("data", "raw", "rato_data_new.csv")
-) 
-```
-
-New columns have been added:
-
-```{r}
-names(input_data_new)[!names(input_data_new) %in% names(input_data)]
 ```
 
 # Process source data
@@ -273,29 +258,52 @@ input_data %<>% left_join(
   y = sampling_protocol,
   by = "occurrence_id")
 ```
+
 ## Transform Lambert coordinates to WGS84
 
 Coordinates in `x` and `y` are given in the Belgian Lambert system, they should be transformed to World Geodetic System 84 coordinate system
 
 ```{r}
-input_data %>%
-    st_as_sf(coords = c("x", "y"), crs = 31370) %>% 
-    st_transform(crs = 4326) %>%
-    as.data.frame() %>%
-    rename(decimal_longitude = x,
-           decimal_latitude = y)%>%
-    bind_cols(input_data) %>%
-    relocate(colnames(input_data))
-head(input_data)
+ input_data_sf <- 
+  input_data %>%
+     st_as_sf(coords = c("x", "y"), crs = 31370) %>%
+     st_transform(crs = 4326) 
+```
+
+```{r}
+x_y <- st_coordinates(input_data_sf)
+```
+
+```{r}
+input_data %>% bind_cols(x_y) %>% 
+  rename(decimal_latitude = Y) %>% 
+  View()
 ```
 
 
- %>%
-    st_transform(crs = 4326) %>%
-    st_coordinates() %>%
-    as.data.frame() %>%
-    rename(decimal_longitude = X,
-           decimal_latitude = Y) 
+
+## Extract scientific name from GBIF code
+
+Extract scientific names from GBIF based on `gbif_code`:
+
+```{r}
+scientific_names <- 
+  map_dfr(input_data$gbif_code, function(x) {
+  if (!is.na(x)) {
+    name_usage(key = x)$data %>%
+    select(key, scientificName, canonicalName)}
+  else {tibble(scientificName = NA_character_, canonicalName = NA_character_)}
+  }) 
+```
+
+Add scientific names to `input_data`
+
+```{r}
+input_data <- bind_cols(input_data, scientific_names$canonicalName)
+```
+
+
+
 
 # Darwin Core mapping
 
@@ -321,7 +329,14 @@ input_data %>% transmute(
   verbatimLatitude = y,
   verbatimLongitude = x,
   verbatimCoordinateSystem = "Lambert coordinates",
-  verbatimSRS = "Belgian Datum 1972") 
+  verbatimSRS = "Belgian Datum 1972",
+  decimalLatitude = "",
+  decimalLongitude = "",
+  geodeticDatum = "WGS84",
+  coordinateUnvertainty = "30",
+  
+  
+  ) 
   
   
   
