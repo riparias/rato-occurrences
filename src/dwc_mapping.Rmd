@@ -314,10 +314,8 @@ Screen mapping for potential errors:
 ```{r}
 input_data %>% 
   group_by(materiaal_vast, sampling_protocol, sampling_effort) %>% 
-  summarize(records = n()) %>% 
-View()
+  summarize(records = n()) 
 ```
-
 
 ## Transform Lambert coordinates to WGS84
 
@@ -339,7 +337,6 @@ input_data <-
   input_data %>% bind_cols(x_y) %>% 
     rename(decimal_latitude = Y) 
 ```
-
 
 
 ## Extract scientific name from GBIF code
