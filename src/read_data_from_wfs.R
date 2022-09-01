@@ -34,5 +34,5 @@ url$query <- list(service = "wfs",
 request <- httr::build_url(url)
 
 # Download requested data as csv file
-file <- here::here("data", "raw", "rato_data_new.csv")
+file <- here::here("data", "raw", "rato_data.csv")
 httr::GET(url = request, write_disk(file, overwrite = TRUE))

@@ -52,16 +52,11 @@ library(sf)
 Create a data frame `input_data` from the source data:
 
 ```{r}
-input_data <- read.csv(file = here("data", "raw", "rato_data.csv"),
-                       header = T,
-                       sep = ",") 
+input_data <- readr::read_csv(
+  here::here("data", "raw", "rato_data.csv")
+) 
 ```
 
-Preview data:
-
-```{r}
-input_data %>% head(n = 5)
-```
 
 # Process source data
 
@@ -109,7 +104,15 @@ The field `waarnemingen` is used to map `organismQuantity`, `organismQuantityTyp
 ```{r}
 input_data %>% 
   group_by(waarneming) %>% 
-  summarise(records = n())
+  summarise(records = n()) %>% 
+  arrange(waarneming)
+```
+
+First, we need to clean `Haard vastgesteld = 0; Waarneming onzeker = 1;`. This should be `Waarneming onzeker = 1;` (error in database):
+
+```{r}
+input_data %<>% mutate(waarneming = recode(waarneming,
+  "Haard vastgesteld = 0; Waarneming onzeker = 1;" = "Waarneming onzeker = 1;"))
 ```
 
 Split into different columns: `waarneming_type` and `waarneming_kwantiteit`:
@@ -130,27 +133,33 @@ input_data <-
       string = waarneming_kwantiteit,
       pattern = ";"))
 ```
+
+
 Map `Organism_quantity`:
 
 ```{r}
 input_data %<>% 
   mutate(organism_quantity = case_when(
-    waarneming_type == "Vastgesteld (in mÂ²)" |
-    waarneming_type == "Vastgesteld (aantal)" ~ waarneming_kwantiteit,
+    waarneming_type == "Vastgesteld (in m²)" |
+    waarneming_type == "Vastgesteld (aantal)" |
+    waarneming_type == "Secundair nest vastgesteld" ~ waarneming_kwantiteit,
     TRUE ~ ""
   )) 
 ```
+
 Map `organism_quantity_type`:
 
 ```{r}
 input_data <-
   input_data %>% 
     mutate(organism_quantity_type = case_when(
-      waarneming_type == "Vastgesteld (in mÂ²)" ~ "square meter(s)",
+      waarneming_type == "Vastgesteld (in m²)" ~ "square meter(s)",
       waarneming_type == "Vastgesteld (aantal)" ~ "individual(s)",
+      waarneming_type == "Secundair nest vastgesteld" ~ "nest",
       TRUE ~ ""
     ))
 ``` 
+
 Map `occurrence_status`:
 
 ```{r}
@@ -160,20 +169,28 @@ input_data <-
       waarneming_type == "Haard vastgesteld" |
       waarneming_type == "Nest vastgesteld" |
       waarneming_type == "Vastgesteld" |
-      waarneming_type == "Vastgesteld (in mÂ²)" |
-      waarneming_type == "Vastgesteld (aantal)" 
+      waarneming_type == "Vastgesteld (in m²)" |
+      waarneming_type == "Vastgesteld (aantal)" |
+      waarneming_type == "Secundair nest vastgesteld"
         ~ "present",
       
       waarneming_type == "Geen haard vastgesteld" |
       waarneming_type == "Niet vastgesteld" 
         ~ "absent",
       
-      waarneming_type == "Waarneming onzeker" ~ "uncertain",
+      waarneming_type == "Waarneming onzeker" ~ "doubtful",
       
       TRUE ~ ""
     ))
 ```
 
+Screen mapping:
+
+```{r}
+input_data %>% 
+  group_by(waarneming, organism_quantity, organism_quantity_type, occurrence_status) %>% 
+  summarize(records = n()) 
+```
 ## Extract information from "materiaal_vast"  
 
 Information from `materiaal_vast` can be used for `samplingProtocol`
@@ -195,20 +212,48 @@ sampling_protocol <-
     # separate on ";" and split in different rows:
     separate_rows(
       "materiaal_vast",
-      sep = ";\\s") %>% 
+      sep = ";") %>% 
   
-    # separate on " = " and split in different columns:
+    # remove rows for which materiaal_vast is empty:
+    filter(materiaal_vast != "") %>% 
+  
+    # remove whitespaces:
+    mutate(materiaal_vast = str_trim(materiaal_vast)) %>% 
+
+    # Add materials column to see if separation was correct:
+    left_join(
+      y = select(input_data, occurrence_id, materiaal_vast),
+      by = "occurrence_id"
+    ) %>% 
+    rename("materiaal_vast_full" = "materiaal_vast.y",
+           "materiaal_vast" = "materiaal_vast.x")
+    
+```
+
+Separate on " = " and split in different columns:
+
+```{r} 
+sampling_protocol %<>% 
     separate(
       col = materiaal_vast,
       sep = "\\s=\\s",
-      into = c("materiaal", "kwantiteit"))  %>% 
-      
-    # remove "(aantal)" for easier mapping:
-   mutate(materiaal = str_remove(materiaal,"\\s\\(aantal\\)")) %>% 
-  
-    # remove all rows for which `kwantiteit = NA
+      into = c("materiaal", "kwantiteit"))
+```
+
+remove "(aantal)" for easier mapping:
+
+```{r} 
+sampling_protocol %<>% 
+   mutate(materiaal = str_remove(materiaal,"\\s\\(aantal\\)")) 
+```
+
+remove all rows for which `kwantiteit = NA
+
+```{r}
+sampling_protocol %<>% 
   filter(!is.na(kwantiteit))
 ```
+
 Resulting materials:
 
 ```{r}
@@ -217,6 +262,7 @@ sampling_protocol %>%
   group_by_all() %>% 
   summarise(records = n())
 ```
+
 Translate to English (generate `protocol`):
 
 ```{r}
@@ -226,15 +272,16 @@ sampling_protocol %<>%
     "Conibearklem" = "conibear trap(s)",
     "Fuik" = "fike(s)",
     "Grondklem" = "ground trap(s)",
-    "Klemvlot" = "",
-    "Lokaasklem" = "bait trap",
-    "Materiaal gesaboteerd" = "",
-    "Slagnet" = "",
-    "Vangkooi" = "cage",
-    "Vangnet" = "net",
-    "Wildcamera" = "camera trap"))
+    "Klemvlot" = "raft trap(s)",
+    "Lokaasklem" = "bait trap(s)",
+    "Materiaal verdwenen/kapot" = "material lost/broken",
+    "Slagnet" = "spring net trap(s)",
+    "Vangkooi" = "cage trap(s)",
+    "Vangnet" = "net trap(s)",
+    "Wildcamera" = "camera trap(s)"))
 ```
-Add `effort`:
+
+Add `effort` to the dataset. This is the sampling effort and is based on the values in `kwantiteit`:
 
 ```{r}
 sampling_protocol %<>% 
@@ -242,6 +289,7 @@ sampling_protocol %<>%
     kwantiteit == "0" ~ "",
     TRUE ~ paste(protocol, kwantiteit, sep = "=")))
 ```
+
 Combine sampling efforts and methods per `occurrence_id`
 
 ```{r}
@@ -251,13 +299,25 @@ sampling_protocol <-
     summarise(sampling_protocol = paste(protocol, collapse = " | "),
               sampling_effort = paste(effort, collapse = " | "))
 ```
-Merge dataset:
+
+Merge `sampling_protocol` with `input_data`:
 
 ```{r}
 input_data %<>% left_join(
   y = sampling_protocol,
   by = "occurrence_id")
 ```
+
+
+Screen mapping for potential errors:
+
+```{r}
+input_data %>% 
+  group_by(materiaal_vast, sampling_protocol, sampling_effort) %>% 
+  summarize(records = n()) %>% 
+View()
+```
+
 
 ## Transform Lambert coordinates to WGS84
 
@@ -275,9 +335,9 @@ x_y <- st_coordinates(input_data_sf)
 ```
 
 ```{r}
-input_data %>% bind_cols(x_y) %>% 
-  rename(decimal_latitude = Y) %>% 
-  View()
+input_data <- 
+  input_data %>% bind_cols(x_y) %>% 
+    rename(decimal_latitude = Y) 
 ```
 
 
@@ -301,9 +361,6 @@ Add scientific names to `input_data`
 ```{r}
 input_data <- bind_cols(input_data, scientific_names$canonicalName)
 ```
-
-
-
 
 # Darwin Core mapping
 
