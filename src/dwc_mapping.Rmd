@@ -460,7 +460,7 @@ input_data %<>% transmute(
   decimalLatitude = decimal_latitude,
   decimalLongitude = decimal_longitude,
   geodeticDatum = "WGS84",
-  coordinateUncertainty = "30",
+  coordinateUncertaintyInMeters = "30",
   scientificName = canonicalName_clean,
   kingdom = kingdom,
   taxonRank = rank_clean)
