@@ -78,7 +78,6 @@ input_data <-
 ```
 
 `object_id` is the unique identifier for each occurrence. This will be the `occurrenceID`. This field should contain unique values only. 
-
 `dossier_id` is the unique identifier for each sampling event. This will be the `eventID`
 
 Check whether `object_id` is unique (value should be `0`)
@@ -331,7 +330,6 @@ sampling_protocol <-
 
 ```
 
-
 Merge `sampling_protocol` with `input_data`:
 
 ```{r}
@@ -361,7 +359,6 @@ input_data <-
     rename(decimal_latitude = Y) %>% 
     rename(decimal_longitude = X)
 ```
-
 
 ## Extract scientific name from GBIF code
 
@@ -414,11 +411,12 @@ Clean `rank`:
 input_data <- input_data %>% 
     mutate(rank_clean = case_when(
       rank == "KINGDOM" & canonicalName_clean == "unknown" ~ "unknown",
-      rank == "KINGDOM" & canonicalName_clean == "Anatidae" ~ "FAMILY",
-      rank == "KINGDOM" & canonicalName_clean == "Cairina moschata" ~ "SPECIES",
-      rank == "KINGDOM" & canonicalName_clean == "Trachemys scripta" ~ "SPECIES",
-      rank == "KINGDOM" & canonicalName_clean == "Psittacula krameri" ~ "SPECIES",
-      TRUE ~ rank))
+      rank == "KINGDOM" & canonicalName_clean == "Anatidae" ~ "family",
+      rank == "KINGDOM" & canonicalName_clean == "Cairina moschata" ~ "species",
+      rank == "KINGDOM" & canonicalName_clean == "Trachemys scripta" ~ "species",
+      rank == "KINGDOM" & canonicalName_clean == "Psittacula krameri" ~ "species",
+      TRUE ~ rank)) %>% 
+    mutate(rank_clean = str_to_lower(rank_clean))
 ```
 
 
@@ -431,8 +429,6 @@ input_data <-
       domein == "Dier" ~ "Animalia",
       domein == "Plant" ~ "Plantae"))
 ```
-
-
 
 # Darwin Core mapping
 
