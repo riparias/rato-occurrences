@@ -450,7 +450,7 @@ input_data %<>% transmute(
   occurrenceStatus = occurrence_status,
   samplingProtocol = sampling_protocol,
   samplingEffort = sampling_effort,
-  eventDate = as.POSIXct(aangemaakt_datum), 
+  eventDate = as.POSIXct(laatst_bewerkt_datum), 
   countryCode = "BE", 
   municipality = gemeente,
   verbatimLatitude = y,
@@ -460,7 +460,7 @@ input_data %<>% transmute(
   decimalLatitude = decimal_latitude,
   decimalLongitude = decimal_longitude,
   geodeticDatum = "WGS84",
-  coordinateUnvertainty = "30",
+  coordinateUncertainty = "30",
   scientificName = canonicalName_clean,
   kingdom = kingdom,
   taxonRank = rank_clean)
@@ -469,6 +469,6 @@ input_data %<>% transmute(
 Save to CSV:
 
 ```{r} 
-write_csv(input_data, here("data", "processed", "event.csv"), na = "")
+write_csv(input_data, here("data", "processed", "occurrence.csv"), na = "")
 ```
 
