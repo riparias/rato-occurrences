@@ -88,7 +88,6 @@ input_data %<>% filter(domein != "Werken")
 
 ## Define eventID and occurrenceID
 
-
 ```{r}
 input_data <- 
   input_data %>% 
@@ -133,7 +132,6 @@ input_data <-
       string = waarneming_kwantiteit,
       pattern = ";"))
 ```
-
 
 Map `Organism_quantity`:
 
@@ -191,6 +189,7 @@ input_data %>%
   group_by(waarneming, organism_quantity, organism_quantity_type, occurrence_status) %>% 
   summarize(records = n()) 
 ```
+
 ## Extract information from "materiaal_vast"  
 
 Information from `materiaal_vast` can be used for `samplingProtocol`
@@ -300,6 +299,33 @@ sampling_protocol <-
               sampling_effort = paste(effort, collapse = " | "))
 ```
 
+Now, the field `sampling_effort` contains some unwanted, repeated hashes. With this code, we remove them:
+
+```{r}
+sampling_protocol <- 
+  sampling_protocol %>%
+  
+  # Split by one or more consecutive vertical pipes, i.e. |, || or |||, and return a list
+  mutate(sampling_effort_new = str_split(.data$sampling_effort, pattern = "\\|+")) %>% 
+  
+  # remove heading or trailing spaces in each element of each list
+  mutate(sampling_effort_new = map(.data$sampling_effort_new, ~ str_trim(.))) %>% 
+  
+  # remove empty or NA elements from list and convert to character by using " | " as delimiter
+  mutate(sampling_effort_new = map_chr(
+    .data$sampling_effort_new, function(x) paste(x[x != "" & !is.na(x)], collapse = " | ")
+    )
+  ) %>% 
+
+  # convert empty strings to NA. empty strings arise in the last step when pasting a character(0) vector, i.e. the input sampling_effort_raw is missing (NA) as in row 6
+  mutate(sampling_effort_new = ifelse(.data$sampling_effort_new == "",
+                                      NA_character_,
+                                      .data$sampling_effort_new)
+)
+
+```
+
+
 Merge `sampling_protocol` with `input_data`:
 
 ```{r}
@@ -308,21 +334,12 @@ input_data %<>% left_join(
   by = "occurrence_id")
 ```
 
-
-Screen mapping for potential errors:
-
-```{r}
-input_data %>% 
-  group_by(materiaal_vast, sampling_protocol, sampling_effort) %>% 
-  summarize(records = n()) 
-```
-
 ## Transform Lambert coordinates to WGS84
 
 Coordinates in `x` and `y` are given in the Belgian Lambert system, they should be transformed to World Geodetic System 84 coordinate system
 
 ```{r}
- input_data_sf <- 
+input_data_sf <- 
   input_data %>%
      st_as_sf(coords = c("x", "y"), crs = 31370) %>%
      st_transform(crs = 4326) 
@@ -335,20 +352,26 @@ x_y <- st_coordinates(input_data_sf)
 ```{r}
 input_data <- 
   input_data %>% bind_cols(x_y) %>% 
-    rename(decimal_latitude = Y) 
+    rename(decimal_latitude = Y) %>% 
+    rename(decimal_longitude = X)
 ```
 
 
 ## Extract scientific name from GBIF code
 
-Extract scientific names from GBIF based on `gbif_code`:
+Extract scientific names from GBIF based on `gbif_code`. First: extract all unique gbif_codes from `input_data`.
+
+```{r}
+gbif_codes <- input_data %>% select(gbif_code) %>% distinct()
+```
+
 
 ```{r}
 scientific_names <- 
-  map_dfr(input_data$gbif_code, function(x) {
+  map_dfr(gbif_codes$gbif_code, function(x) {
   if (!is.na(x)) {
     name_usage(key = x)$data %>%
-    select(key, scientificName, canonicalName)}
+    select(key, scientificName, canonicalName, rank)}
   else {tibble(scientificName = NA_character_, canonicalName = NA_character_)}
   }) 
 ```
@@ -356,13 +379,43 @@ scientific_names <-
 Add scientific names to `input_data`
 
 ```{r}
-input_data <- bind_cols(input_data, scientific_names$canonicalName)
+input_data <- 
+  input_data %>% left_join(
+    scientific_names,
+    by = c("gbif_code" = "key"))
 ```
+
+Clean `canonical_name` and `rank`:
+
+```{r}
+input_data <-
+  input_data %>% 
+    mutate(canonicalName_clean = case_when(
+      soort == "Andere (soort vermelden):" ~ "",
+      soort == "Halsbandparkiet:" ~ "Psittacula krameri",
+      soort == "Ganzenactie" | soort == "gedomesticeerde gans" ~ "",
+      TRUE ~ canonicalName)) %>% 
+    mutate(rank_clean = recode(rank,
+      "KINGDOM" = "SPECIES"))
+
+```
+
+Create `kingdom` from `domein`:
+
+```{r}
+input_data <- 
+  input_data %>% 
+    mutate(kingdom = case_when(
+      domein == "Dier" ~ "Animalia",
+      domein == "Plant" ~ "Plantae"))
+```
+
+
 
 # Darwin Core mapping
 
 ```{r}
-input_data %>% transmute(
+input_data %<>% transmute(
   type = "Event",
   language = "en", 
   license = "http://creativecommons.org/publicdomain/zero/1.0/", 
@@ -371,7 +424,7 @@ input_data %>% transmute(
   institutionCode = "RATO", 
   datasetName = "RATO - daily operations commissioned by the province East Flanders, Belgium", 
   basisOfRecord = "humanObservation", 
-  dwc_eventID = event_id, 
+  eventID = event_id, 
   recordedBy = "RATO", 
   organismQuantity = organism_quantity, 
   organismQuantityType = organism_quantity_type,
@@ -380,342 +433,23 @@ input_data %>% transmute(
   samplingEffort = sampling_effort,
   eventDate = as.POSIXct(aangemaakt_datum), 
   countryCode = "BE", 
+  municipality = gemeente,
   verbatimLatitude = y,
   verbatimLongitude = x,
   verbatimCoordinateSystem = "Lambert coordinates",
   verbatimSRS = "Belgian Datum 1972",
-  decimalLatitude = "",
-  decimalLongitude = "",
+  decimalLatitude = decimal_latitude,
+  decimalLongitude = decimal_longitude,
   geodeticDatum = "WGS84",
   coordinateUnvertainty = "30",
-  
-  
-  ) 
-  
-  
-  
+  scientificName = canonicalName_clean,
+  kingdom = kingdom,
+  taxonRank = rank_clean)
 ```
 
-<!-- ### samplingEffort -->
+Save to CSV:
 
-<!-- ### eventDate -->
+```{r} 
+write_csv(input_data, here("data", "processed", "event.csv"), na = "")
+```
 
-<!-- ```{r} -->
-<!-- event %<>% mutate(dwc_eventDate = as.Date(aangemaakt_datum)) -->
-<!-- ``` -->
-
-<!-- ### countryCode -->
-
-<!-- ```{r} -->
-<!-- event %<>% mutate(dwc_countryCode = "BE"%>%  -->
-<!-- ``` -->
-
-<!-- ### verbatimLatitude -->
-
-<!-- ```{r} -->
-<!-- event %<>% mutate(dwc_verbatimLatitude = y)  -->
-<!-- ``` -->
-<!-- ### verbatimLongitude -->
-
-<!-- ```{r} -->
-<!-- event %<>% mutate(dwc_verbatimLongitude = x)  -->
-<!-- ``` -->
-
-<!-- ### verbatimCoordinateSystem -->
-
-<!-- ```{r} -->
-<!-- event %<>% mutate(dwc_verbatimCoordinateSystem = "Lambert coordinates" )  -->
-<!-- ``` -->
-
-<!-- ### verbatimSRS -->
-
-<!-- ```{r} -->
-<!-- event %<>% mutate(dwc_verbatimSRS = "Belgian Datum 1972" )  -->
-<!-- ``` -->
-
-
-<!-- ### decimalLatitude and decimalLongitude -->
-
-<!-- ```{r} -->
-<!-- event <-  -->
-<!--   event %>% -->
-<!--     st_as_sf(coords = c("x", "y"), crs = 31370) %>% -->
-<!--     st_transform(crs = 4326) %>% -->
-<!--     st_coordinates() %>% -->
-<!--     as.data.frame() %>% -->
-<!--     rename(dwc_decimalLongitude = X, -->
-<!--            dwc_decimalLatitude = Y) %>% -->
-<!--     bind_cols(event) %>% -->
-<!--     relocate(colnames(event)) -->
-<!-- head(event) -->
-<!-- ``` -->
-
-<!-- ## geodeticDatum -->
-
-<!-- ```{r} -->
-<!-- event %<>% mutate(dwc_geodeticDatum = "WGS84" )  -->
-<!-- ``` -->
-
-<!-- ## coordinateUncertainty -->
-
-<!-- ```{r} -->
-<!-- occurrence %<>% mutate(dwc_coordinateUncertainty = "30")  -->
-<!-- ``` -->
-
-
-<!-- ### scientificName -->
-
-
-
-<!-- ### kingdom -->
-
-<!-- Inspect values: -->
-
-<!-- ```{r} -->
-<!-- occurrence %>% -->
-<!--   group_by(domein) %>% -->
-<!--   count() -->
-<!-- ``` -->
-
-<!-- Map values: -->
-
-<!-- ```{r} -->
-<!-- occurrence %>% mutate(dwc_kingdom = case_when( -->
-<!--   domein == "Dier" ~ "Animalia", -->
-<!--   domein == "Plant" ~ "Plantae" -->
-<!-- )) -->
-<!-- ``` -->
-
-
-<!-- ### taxonRank -->
-
-<!-- Inspect values: -->
-
-<!-- ```{r} -->
-<!-- taxon %>% -->
-<!--   group_by(rankmarker) %>% -->
-<!--   count() -->
-<!-- ``` -->
-
-<!-- Map values by recoding to the [GBIF rank vocabulary](http://rs.gbif.org/vocabulary/gbif/rank_2015-04-24.xml): -->
-
-<!-- ```{r} -->
-<!-- taxon %<>% mutate(dwc_taxonRank = recode(rankmarker, -->
-<!--   "agg."      = "speciesAggregate", -->
-<!--   "infrasp."  = "infraspecificname", -->
-<!--   "sp."       = "species", -->
-<!--   "var."      = "variety", -->
-<!--   .default    = "", -->
-<!--   .missing    = "" -->
-<!-- )) -->
-<!-- ``` -->
-
-<!-- Inspect mapped values:  -->
-
-<!-- ```{r} -->
-<!-- taxon %>% -->
-<!--   group_by(rankmarker, dwc_taxonRank) %>% -->
-<!--   count() -->
-<!-- ``` -->
-
-<!-- ### nomenclaturalCode -->
-
-<!-- ```{r} -->
-<!-- taxon %<>% mutate(dwc_nomenclaturalCode = "my_nomenclaturalCode") # e.g. "ICZN" -->
-<!-- ``` -->
-
-<!-- ## Post-processing -->
-
-<!-- Only keep the Darwin Core columns: -->
-
-<!-- ```{r} -->
-<!-- taxon %<>% select(starts_with("dwc_")) -->
-<!-- ``` -->
-
-<!-- Drop the `dwc_` prefix: -->
-
-<!-- ```{r} -->
-<!-- colnames(taxon) <- str_remove(colnames(taxon), "dwc_") -->
-<!-- ``` -->
-
-<!-- Preview data: -->
-
-<!-- ```{r} -->
-<!-- taxon %>% head() -->
-<!-- ``` -->
-
-<!-- Save to CSV: -->
-
-<!-- ```{r} -->
-<!-- write_csv(taxon, here("data", "processed", "taxon.csv"), na = "") -->
-<!-- ``` -->
-
-<!-- # Distribution extension -->
-
-<!-- ## Pre-processing -->
-
-<!-- Create a dataframe with all data: -->
-
-<!-- ```{r} -->
-<!-- distribution <- input_data -->
-<!-- ``` -->
-
-<!-- ## Term mapping -->
-
-<!-- Map the data to [Species Distribution](http://rs.gbif.org/extension/gbif/1.0/distribution.xml). -->
-
-<!-- ### taxonID -->
-
-<!-- ```{r} -->
-<!-- distribution %<>% mutate(dwc_taxonID = taxon_id) -->
-<!-- ``` -->
-
-<!-- ### locality -->
-
-<!-- Inspect values: -->
-
-<!-- ```{r} -->
-<!-- distribution %>% -->
-<!--   group_by(country_code, locality) %>% -->
-<!--   count() -->
-<!-- ``` -->
-
-<!-- Map values to `locality` if provided, otherwise use the country name: -->
-
-<!-- ```{r} -->
-<!-- distribution %<>% mutate(dwc_locality = case_when( -->
-<!--   !is.na(locality) ~ locality, -->
-<!--   country_code == "BE" ~ "Belgium", -->
-<!--   country_code == "GB" ~ "United Kingdom", -->
-<!--   country_code == "MK" ~ "Macedonia", -->
-<!--   country_code == "NL" ~ "The Netherlands", -->
-<!--   TRUE ~ "" # In other cases leave empty -->
-<!-- )) -->
-<!-- ``` -->
-
-<!-- Inspect mapped values:  -->
-
-<!-- ```{r} -->
-<!-- distribution %>% -->
-<!--   group_by(country_code, locality, dwc_locality) %>% -->
-<!--   count() -->
-<!-- ``` -->
-
-<!-- ### countryCode -->
-
-<!-- Inspect values: -->
-
-<!-- ```{r} -->
-<!-- distribution %>% -->
-<!--   group_by(country_code) %>% -->
-<!--   count() -->
-<!-- ``` -->
-
-<!-- Map values: -->
-
-<!-- ```{r} -->
-<!-- distribution %<>% mutate(dwc_countryCode = country_code)  -->
-<!-- ``` -->
-
-<!-- ### occurrenceStatus -->
-
-<!-- Inspect values: -->
-
-<!-- ```{r} -->
-<!-- distribution %>% -->
-<!--   group_by(occurrence_status) %>% -->
-<!--   count() -->
-<!-- ``` -->
-
-<!-- Map values: -->
-
-<!-- ```{r} -->
-<!-- distribution %<>% mutate(dwc_occurrenceStatus = occurrence_status)  -->
-<!-- ``` -->
-
-<!-- ### threatStatus -->
-
-<!-- Inspect values: -->
-
-<!-- ```{r} -->
-<!-- distribution %>% -->
-<!--   group_by(threat_status) %>% -->
-<!--   count() -->
-<!-- ``` -->
-
-<!-- Map values by recoding to the [IUCN threat status vocabulary](http://rs.gbif.org/vocabulary/iucn/threat_status.xml): -->
-
-<!-- ```{r} -->
-<!-- distribution %<>% mutate(dwc_threatStatus = recode(threat_status, -->
-<!--   "endangered" = "EN", -->
-<!--   "vulnerable" = "VU" -->
-<!-- )) -->
-<!-- ``` -->
-
-<!-- Inspect mapped values:  -->
-
-<!-- ```{r} -->
-<!-- distribution %>% -->
-<!--   group_by(threat_status, dwc_threatStatus) %>% -->
-<!--   count() -->
-<!-- ``` -->
-
-<!-- ### source -->
-
-<!-- Inspect values: -->
-
-<!-- ```{r} -->
-<!-- distribution %>% -->
-<!--   group_by(source) %>% -->
-<!--   count() %>% -->
-<!--   head() # Remove to show all values -->
-<!-- ``` -->
-
-<!-- Map values: -->
-
-<!-- ```{r} -->
-<!-- distribution %<>% mutate(dwc_source = source)  -->
-<!-- ``` -->
-
-<!-- ### occurrenceRemarks -->
-
-<!-- Inspect values: -->
-
-<!-- ```{r} -->
-<!-- distribution %>% -->
-<!--   group_by(remarks) %>% -->
-<!--   count() %>% -->
-<!--   head() # Remove to show all values -->
-<!-- ``` -->
-
-<!-- Map values: -->
-
-<!-- ```{r} -->
-<!-- distribution %<>% mutate(dwc_occurrenceRemarks = remarks)  -->
-<!-- ``` -->
-
-<!-- ## Post-processing -->
-
-<!-- Only keep the Darwin Core columns: -->
-
-<!-- ```{r} -->
-<!-- distribution %<>% select(starts_with("dwc_")) -->
-<!-- ``` -->
-
-<!-- Drop the `dwc_` prefix: -->
-
-<!-- ```{r} -->
-<!-- colnames(distribution) <- str_remove(colnames(distribution), "dwc_") -->
-<!-- ``` -->
-
-<!-- Preview data: -->
-
-<!-- ```{r} -->
-<!-- distribution %>% head() -->
-<!-- ``` -->
-
-<!-- Save to CSV: -->
-
-<!-- ```{r} -->
-<!-- write_csv(distribution, here("data", "processed", "distribution.csv"), na = "") -->
-<!-- ``` -->
