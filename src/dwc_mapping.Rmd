@@ -52,9 +52,15 @@ library(sf)
 Create a data frame `input_data` from the source data:
 
 ```{r}
-input_data <- readr::read_csv(
+raw_data <- readr::read_csv(
   here::here("data", "raw", "rato_data.csv")
 ) 
+```
+
+Rename `raw_data` to `input_data` so we can keep original values 
+
+```{r}
+input_data <- raw_data
 ```
 
 
@@ -391,14 +397,30 @@ Clean `canonical_name` and `rank`:
 input_data <-
   input_data %>% 
     mutate(canonicalName_clean = case_when(
-      soort == "Andere (soort vermelden):" ~ "",
+      soort == "Andere (soort vermelden):" & opmerkingen == "1 barberie gevangen, 1 verdwenen sinds vorige donderdag" ~ "Cairina moschata",
+      soort == "Andere (soort vermelden):" & opmerkingen == "2 stuks roodwangschildpad" ~ "Trachemys scripta",
+      soort == "Andere (soort vermelden):" & is.na(opmerkingen) ~ "unknown",
       soort == "Halsbandparkiet:" ~ "Psittacula krameri",
-      soort == "Ganzenactie" | soort == "gedomesticeerde gans" ~ "",
-      TRUE ~ canonicalName)) %>% 
-    mutate(rank_clean = recode(rank,
-      "KINGDOM" = "SPECIES"))
-
+      soort == "Ganzenactie" ~ "Anatidae",
+      soort == "gedomesticeerde gans" & opmerkingen == "Brandganzen" ~ "Branta leucopsis",
+      soort == "gedomesticeerde gans" & opmerkingen == "Muskuseend"  ~ "Cairina moschata",
+      soort == "gedomesticeerde gans" & is.na(opmerkingen) ~ "Anatidae",
+      TRUE ~ canonicalName))
 ```
+
+Clean `rank`:
+
+```{r}
+input_data <- input_data %>% 
+    mutate(rank_clean = case_when(
+      rank == "KINGDOM" & canonicalName_clean == "unknown" ~ "unknown",
+      rank == "KINGDOM" & canonicalName_clean == "Anatidae" ~ "FAMILY",
+      rank == "KINGDOM" & canonicalName_clean == "Cairina moschata" ~ "SPECIES",
+      rank == "KINGDOM" & canonicalName_clean == "Trachemys scripta" ~ "SPECIES",
+      rank == "KINGDOM" & canonicalName_clean == "Psittacula krameri" ~ "SPECIES",
+      TRUE ~ rank))
+```
+
 
 Create `kingdom` from `domein`:
 
@@ -425,6 +447,7 @@ input_data %<>% transmute(
   datasetName = "RATO - daily operations commissioned by the province East Flanders, Belgium", 
   basisOfRecord = "humanObservation", 
   eventID = event_id, 
+  occurrenceID = occurrence_id,
   recordedBy = "RATO", 
   organismQuantity = organism_quantity, 
   organismQuantityType = organism_quantity_type,
