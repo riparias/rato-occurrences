@@ -273,16 +273,16 @@ Translate to English (generate `protocol`):
 sampling_protocol %<>% 
   mutate(protocol = recode(materiaal,
     "Andere" = "other",
-    "Conibearklem" = "conibear trap(s)",
-    "Fuik" = "fike(s)",
-    "Grondklem" = "ground trap(s)",
-    "Klemvlot" = "raft trap(s)",
-    "Lokaasklem" = "bait trap(s)",
+    "Conibearklem" = "conibear trap",
+    "Fuik" = "fike",
+    "Grondklem" = "ground trap",
+    "Klemvlot" = "raft trap",
+    "Lokaasklem" = "bait trap",
     "Materiaal verdwenen/kapot" = "material lost/broken",
-    "Slagnet" = "spring net trap(s)",
-    "Vangkooi" = "cage trap(s)",
-    "Vangnet" = "net trap(s)",
-    "Wildcamera" = "camera trap(s)"))
+    "Slagnet" = "spring net trap",
+    "Vangkooi" = "cage trap",
+    "Vangnet" = "net trap",
+    "Wildcamera" = "camera trap"))
 ```
 
 Add `effort` to the dataset. This is the sampling effort and is based on the values in `kwantiteit`:
