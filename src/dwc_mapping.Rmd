@@ -291,7 +291,7 @@ Add `effort` to the dataset. This is the sampling effort and is based on the val
 sampling_protocol %<>% 
   mutate(effort = case_when(
     kwantiteit == "0" ~ "",
-    TRUE ~ paste(protocol, kwantiteit, sep = "=")))
+    TRUE ~ paste(kwantiteit, protocol, sep = " ")))
 ```
 
 Combine sampling efforts and methods per `occurrence_id`
