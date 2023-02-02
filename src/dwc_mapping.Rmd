@@ -25,16 +25,6 @@ output:
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = TRUE)
 ```
 
-Install required libraries (only if the libraries have not been installed before):
-
-```{r}
-installed <- rownames(installed.packages())
-required <- c("tidyverse", "tidylog", "magrittr", "here", "janitor", "readxl", "digest", "rgbif")
-if (!all(required %in% installed)) {
-  install.packages(required[!required %in% installed])
-}
-```
-
 Load libraries:
 
 ```{r message = FALSE}
@@ -85,6 +75,7 @@ Check whether `object_id` is unique (value should be `0`)
 ```{r}
 anyDuplicated(input_data$objectid)
 ```
+
 Remove all rows for `Domein` = `Werken` 
 
 ```{r}
