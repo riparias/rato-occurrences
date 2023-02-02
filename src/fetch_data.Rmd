@@ -1,0 +1,91 @@
+---
+title: "Fetch data of RATO vzw"
+author:
+- Damiano Oldoni
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    df_print: paged
+    number_sections: yes
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+---
+
+# Setup 
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = TRUE, message = TRUE)
+```
+
+Load libraries:
+
+```{r}
+library(httr)     # generic webservice package
+library(ows4R)    # interface for OGC webservices
+library(here)     # to work with paths
+library(readr)    # to read csv files
+```
+
+# Fetch data from WFS
+
+WFS link:
+
+```{r link}
+wfs <- "https://geodiensten.oost-vlaanderen.be/arcgis/services/MIL/RATO_Public_Data/MapServer/WFSServer"
+```
+
+Create WFS client:
+
+```{r create_client}
+rato_client <- ows4R::WFSClient$new(wfs, serviceVersion = "2.0.0")
+```
+
+Overview of the layers available:
+
+```{r layers}
+layers <- rato_client$getFeatureTypes(pretty = TRUE)
+print(layers)
+```
+
+Request data from layer `Waarnemingen_Public:Invasieve_uitheemse_soorten`:
+
+```{r request}
+url <- httr::parse_url(wfs)
+url$query <- list(service = "wfs",
+                  request = "GetFeature",
+                  typename = "RATO_Public_Data",
+                  outputFormat = "CSV"
+)
+request <- httr::build_url(url)
+```
+
+Download requested data as csv and save them  as `rato_data.csv`:
+
+```{r download_data}
+file_path <- here::here("data", "raw", "rato_data.csv")
+httr::GET(url = request, write_disk(file_path, overwrite = TRUE))
+```
+
+## Remove column `GmlID`
+
+The column `GMlID` is not present in the database of RATO vzw: it is added by the WFS service as a progressive number with the layer name as prefix. Removing this column from the raw data would increase the effectiveness of the git file change history tool, e.g. in case new observations are added at a certain row in the file.
+
+```{r remove_GmlID}
+# read raw occurrences
+raw_occurrences <- readr::read_csv(
+  file = file_path,
+  na = "",
+  col_types = readr::cols(.default = readr::col_character())
+)
+
+# remove GmlId column
+raw_occurrences <- subset(raw_occurrences, select = -GmlId)
+
+# save raw occurrences (overwrite file)
+readr::write_csv(
+  x = raw_occurrences,
+  file = file_path,
+  na = "",
+)
+```
