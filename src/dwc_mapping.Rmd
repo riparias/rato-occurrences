@@ -1,6 +1,6 @@
 ---
 title: "Darwin Core mapping"
-subtitle: "For: my_dataset_title"
+subtitle: "For: The (...) occurrences of "
 author:
 - author_1
 - author_2
@@ -25,27 +25,22 @@ output:
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = TRUE)
 ```
 
-Install required libraries (only if the libraries have not been installed before):
-
-```{r}
-installed <- rownames(installed.packages())
-required <- c("tidyverse", "tidylog", "magrittr", "here", "janitor", "readxl", "digest", "rgbif")
-if (!all(required %in% installed)) {
-  install.packages(required[!required %in% installed])
-}
-```
-
 Load libraries:
 
 ```{r message = FALSE}
-library(tidyverse)      # To do data science
-library(tidylog)        # To provide feedback on dplyr functions
-library(magrittr)       # To use %<>% pipes
+library(dplyr)          # To do data wrangling
+library(tidyr)          # To create tidy data
+library(readr)          # To read data
+library(stringr)        # To work with strings (chars)
+library(purrr)          # TO work with functions and vectors
 library(here)           # To find files
+library(tidylog)        # To provide feedback on dplyr functions
+library(magrittr)       # To use %<>% pipe
+library(sf)             # To convert coordinate systems
 library(janitor)        # To clean input data
-library(readxl)         # To read Excel files
 library(digest)         # To generate hashes
-library(rgbif)          # To use GBIF services
+library(rgbif)
+library(sf)             # To convert coordinate systems
 ```
 
 # Read source data
@@ -53,14 +48,17 @@ library(rgbif)          # To use GBIF services
 Create a data frame `input_data` from the source data:
 
 ```{r}
-input_data <- read_excel(path = here("data", "raw", "checklist.xlsx")) 
+raw_data <- readr::read_csv(
+  here::here("data", "raw", "rato_data.csv")
+) 
 ```
 
-Preview data:
+Rename `raw_data` to `input_data` so we can keep original values 
 
 ```{r}
-input_data %>% head(n = 5)
+input_data <- raw_data
 ```
+
 
 # Process source data
 
@@ -69,403 +67,419 @@ input_data %>% head(n = 5)
 Clean data somewhat:
 
 ```{r}
-input_data %<>% remove_empty("rows")
+input_data <- 
+  input_data %>% 
+    remove_empty("rows") %>% 
+    clean_names()
 ```
 
-## Scientific names
+`object_id` is the unique identifier for each occurrence. This will be the `occurrenceID`. This field should contain unique values only. 
+`dossier_id` is the unique identifier for each sampling event. This will be the `eventID`
 
-Use the [GBIF nameparser](https://www.gbif.org/tools/name-parser) to retrieve nomenclatural information for the scientific names in the checklist:
+Check whether `object_id` is unique (value should be `0`)
 
 ```{r}
-parsed_names <- input_data %>%
-  distinct(scientific_name) %>%
-  pull() %>% # Create vector from dataframe
-  parsenames() # An rgbif function
+anyDuplicated(input_data$objectid)
 ```
 
-Show scientific names with nomenclatural issues, i.e. not of `type = SCIENTIFIC` or that could not be fully parsed. Note: these are not necessarily incorrect.
+Remove all rows for `Domein` = `Werken` 
 
 ```{r}
-parsed_names %>%
-  select(scientificname, type, parsed, parsedpartially, rankmarker) %>%
-  filter(!(type == "SCIENTIFIC" & parsed == "TRUE" & parsedpartially == "FALSE"))
+input_data %<>% filter(domein != "Werken")
 ```
 
-Correct names and reparse:
+## Define eventID and occurrenceID
 
-```{r correct and reparse}
-input_data %<>% mutate(scientific_name = recode(scientific_name,
-  "AseroÙ rubra" = "Asero rubra"
-))
+```{r}
+input_data <- 
+  input_data %>% 
+    mutate(event_id = dossier_id) %>% 
+    mutate(occurrence_id = objectid)
 
-# Redo parsing
-parsed_names <- input_data %>%
-  distinct(scientific_name) %>%
-  pull() %>%
-  parsenames()
-
-# Show names with nomenclatural issues again
-parsed_names %>%
-  select(scientificname, type, parsed, parsedpartially, rankmarker) %>%
-  filter(!(type == "SCIENTIFIC" & parsed == "TRUE" & parsedpartially == "FALSE"))
 ```
 
-## Taxon ranks
+## Extract information from "waarnemingen"  
 
-The nameparser function also provides information about the rank of the taxon (in `rankmarker`). Here we join this information with our checklist. Cleaning these ranks will done in the Taxon Core mapping:
+The field `waarnemingen` is used to map `organismQuantity`, `organismQuantityType` and `occurrenceStatus`. This fields need to be cleaned before mapping. 
+
+```{r}
+input_data %>% 
+  group_by(waarneming) %>% 
+  summarise(records = n()) %>% 
+  arrange(waarneming)
+```
+
+First, we need to clean `Haard vastgesteld = 0; Waarneming onzeker = 1;`. This should be `Waarneming onzeker = 1;` (error in database):
+
+```{r}
+input_data %<>% mutate(waarneming = recode(waarneming,
+  "Haard vastgesteld = 0; Waarneming onzeker = 1;" = "Waarneming onzeker = 1;"))
+```
+
+Split into different columns: `waarneming_type` and `waarneming_kwantiteit`:
+
+```{r}
+input_data <- 
+  input_data %>% 
+
+    # First, separate `waarneming` into `waarneming_type` and `waarneming_kwantiteit`:
+    separate(                                   
+      col = waarneming,
+      into = c("waarneming_type", "waarneming_kwantiteit"),
+      sep = "\\s=\\s",
+      remove = FALSE) %>% 
+
+    # Clean waarneming_kwantiteit:
+    mutate(waarneming_kwantiteit = str_remove(
+      string = waarneming_kwantiteit,
+      pattern = ";"))
+```
+
+Map `Organism_quantity`:
+
+```{r}
+input_data %<>% 
+  mutate(organism_quantity = case_when(
+    waarneming_type == "Vastgesteld (in m²)" |
+    waarneming_type == "Vastgesteld (aantal)" |
+    waarneming_type == "Secundair nest vastgesteld" ~ waarneming_kwantiteit,
+    TRUE ~ ""
+  )) 
+```
+
+Map `organism_quantity_type`:
+
+```{r}
+input_data <-
+  input_data %>% 
+    mutate(organism_quantity_type = case_when(
+      waarneming_type == "Vastgesteld (in m²)" ~ "square meter(s)",
+      waarneming_type == "Vastgesteld (aantal)" ~ "individual(s)",
+      waarneming_type == "Secundair nest vastgesteld" ~ "nest",
+      TRUE ~ ""
+    ))
+``` 
+
+Map `occurrence_status`:
+
+```{r}
+input_data <-
+  input_data %>%
+    mutate(occurrence_status = case_when(
+      waarneming_type == "Haard vastgesteld" |
+      waarneming_type == "Nest vastgesteld" |
+      waarneming_type == "Vastgesteld" |
+      waarneming_type == "Vastgesteld (in m²)" |
+      waarneming_type == "Vastgesteld (aantal)" |
+      waarneming_type == "Secundair nest vastgesteld"
+        ~ "present",
+      
+      waarneming_type == "Geen haard vastgesteld" |
+      waarneming_type == "Niet vastgesteld" 
+        ~ "absent",
+      
+      waarneming_type == "Waarneming onzeker" ~ "doubtful",
+      
+      TRUE ~ ""
+    ))
+```
+
+Screen mapping:
+
+```{r}
+input_data %>% 
+  group_by(waarneming, organism_quantity, organism_quantity_type, occurrence_status) %>% 
+  summarize(records = n()) 
+```
+
+## Extract information from "materiaal_vast"  
+
+Information from `materiaal_vast` can be used for `samplingProtocol`
+
+```{r}
+input_data %>% 
+  group_by(materiaal_vast) %>% 
+  summarise(records = n()) %>% 
+  arrange (records)
+```
+
+First split on ";" and separate on "="
+
+```{r}
+sampling_protocol <-
+  input_data %>% 
+    select(occurrence_id, materiaal_vast) %>% 
+
+    # separate on ";" and split in different rows:
+    separate_rows(
+      "materiaal_vast",
+      sep = ";") %>% 
+  
+    # remove rows for which materiaal_vast is empty:
+    filter(materiaal_vast != "") %>% 
+  
+    # remove whitespaces:
+    mutate(materiaal_vast = str_trim(materiaal_vast)) %>% 
+
+    # Add materials column to see if separation was correct:
+    left_join(
+      y = select(input_data, occurrence_id, materiaal_vast),
+      by = "occurrence_id"
+    ) %>% 
+    rename("materiaal_vast_full" = "materiaal_vast.y",
+           "materiaal_vast" = "materiaal_vast.x")
+    
+```
+
+Separate on " = " and split in different columns:
+
+```{r} 
+sampling_protocol %<>% 
+    separate(
+      col = materiaal_vast,
+      sep = "\\s=\\s",
+      into = c("materiaal", "kwantiteit"))
+```
+
+remove "(aantal)" for easier mapping:
+
+```{r} 
+sampling_protocol %<>% 
+   mutate(materiaal = str_remove(materiaal,"\\s\\(aantal\\)")) 
+```
+
+remove all rows for which `kwantiteit = NA
+
+```{r}
+sampling_protocol %<>% 
+  filter(!is.na(kwantiteit))
+```
+
+Resulting materials:
+
+```{r}
+sampling_protocol %>% 
+  select(materiaal) %>% 
+  group_by_all() %>% 
+  summarise(records = n())
+```
+
+Translate to English (generate `protocol`):
+
+```{r}
+sampling_protocol %<>% 
+  mutate(protocol = recode(materiaal,
+    "Andere" = "other",
+    "Conibearklem" = "conibear trap",
+    "Fuik" = "fike",
+    "Grondklem" = "ground trap",
+    "Klemvlot" = "raft trap",
+    "Lokaasklem" = "bait trap",
+    "Materiaal verdwenen/kapot" = "material lost/broken",
+    "Slagnet" = "spring net trap",
+    "Vangkooi" = "cage trap",
+    "Vangnet" = "net trap",
+    "Wildcamera" = "camera trap"))
+```
+
+Add `effort` to the dataset. This is the sampling effort and is based on the values in `kwantiteit`:
+
+```{r}
+sampling_protocol %<>% 
+  mutate(effort = case_when(
+    kwantiteit == "0" ~ "",
+    TRUE ~ paste(kwantiteit, protocol, sep = " ")))
+```
+
+Combine sampling efforts and methods per `occurrence_id`
+
+```{r}
+sampling_protocol <-
+  sampling_protocol %>%
+    group_by(occurrence_id) %>%
+    summarise(sampling_protocol = paste(protocol, collapse = " | "),
+              sampling_effort = paste(effort, collapse = " | "))
+```
+
+Now, the field `sampling_effort` contains some unwanted, repeated hashes. With this code, we remove them:
+
+```{r}
+sampling_protocol <- 
+  sampling_protocol %>%
+  
+  # Split by one or more consecutive vertical pipes, i.e. |, || or |||, and return a list
+  mutate(sampling_effort_new = str_split(.data$sampling_effort, pattern = "\\|+")) %>% 
+  
+  # remove heading or trailing spaces in each element of each list
+  mutate(sampling_effort_new = map(.data$sampling_effort_new, ~ str_trim(.))) %>% 
+  
+  # remove empty or NA elements from list and convert to character by using " | " as delimiter
+  mutate(sampling_effort_new = map_chr(
+    .data$sampling_effort_new, function(x) paste(x[x != "" & !is.na(x)], collapse = " | ")
+    )
+  ) %>% 
+
+  # convert empty strings to NA. empty strings arise in the last step when pasting a character(0) vector, i.e. the input sampling_effort_raw is missing (NA) as in row 6
+  mutate(sampling_effort_new = ifelse(.data$sampling_effort_new == "",
+                                      NA_character_,
+                                      .data$sampling_effort_new)
+)
+
+```
+
+Merge `sampling_protocol` with `input_data`:
 
 ```{r}
 input_data %<>% left_join(
-  parsed_names %>%
-  select(scientificname, rankmarker),
-  by = c("scientific_name" = "scientificname"))
+  y = sampling_protocol,
+  by = "occurrence_id")
 ```
 
-## Taxon IDs
+## Transform Lambert coordinates to WGS84
 
-To link taxa with information in the extension(s), each taxon needs a unique and relatively stable `taxonID`. Here we create one in the form of `dataset_shortname:taxon:hash`, where `hash` is unique code based on scientific name and kingdom (that will remain the same as long as scientific name and kingdom remain the same):
+Coordinates in `x` and `y` are given in the Belgian Lambert system, they should be transformed to World Geodetic System 84 coordinate system
 
 ```{r}
-vdigest <- Vectorize(digest) # Vectorize digest function to work with vectors
-input_data %<>% mutate(taxon_id = paste(
-  "my_dataset_shortname", # e.g. "alien-fishes-checklist"
-  "taxon",
-  vdigest(paste(scientific_name, kingdom), algo = "md5"),
-  sep = ":"
-))
+input_data_sf <- 
+  input_data %>%
+     st_as_sf(coords = c("x", "y"), crs = 31370) %>%
+     st_transform(crs = 4326) 
 ```
 
-## Preview data
-
-Show the number of taxa and distributions per kingdom and rank:
+```{r}
+x_y <- st_coordinates(input_data_sf)
+```
 
 ```{r}
+input_data <- 
+  input_data %>% bind_cols(x_y) %>% 
+    rename(decimal_latitude = Y) %>% 
+    rename(decimal_longitude = X)
+```
+
+## Extract scientific name from GBIF code
+
+Extract scientific names from GBIF based on `gbif_code`. First: extract all unique gbif_codes from `input_data`.
+
+```{r}
+gbif_codes <- input_data %>% select(gbif_code) %>% distinct()
+```
+
+```{r}
+scientific_names <- 
+  map_dfr(gbif_codes$gbif_code, function(x) {
+  if (!is.na(x)) {
+    name_usage(key = x)$data %>%
+    select(key, scientificName, canonicalName, rank)}
+  else {tibble(scientificName = NA_character_, canonicalName = NA_character_)}
+  }) 
+```
+
+Add scientific names to `input_data`
+
+```{r}
+input_data <- 
+  input_data %>% left_join(
+    scientific_names,
+    by = c("gbif_code" = "key"))
+```
+
+Clean `canonical_name` and `rank`:
+
+```{r}
+input_data <-
+  input_data %>% 
+    mutate(canonicalName_clean = case_when(
+      soort == "Andere (soort vermelden):" & opmerkingen == "1 barberie gevangen, 1 verdwenen sinds vorige donderdag" ~ "Cairina moschata",
+      soort == "Andere (soort vermelden):" & opmerkingen == "2 stuks roodwangschildpad" ~ "Trachemys scripta",
+      soort == "Andere (soort vermelden):" & is.na(opmerkingen) ~ NA_character_,
+      soort == "Halsbandparkiet:" ~ "Psittacula krameri",
+      soort == "Ganzenactie" ~ "Anatidae",
+      soort == "gedomesticeerde gans" & opmerkingen == "Brandganzen" ~ "Branta leucopsis",
+      soort == "gedomesticeerde gans" & opmerkingen == "Muskuseend"  ~ "Cairina moschata",
+      soort == "gedomesticeerde gans" & is.na(opmerkingen) ~ "Anatidae",
+      TRUE ~ canonicalName))
+```
+
+Clean `rank`:
+
+```{r}
+input_data <- input_data %>% 
+    mutate(rank_clean = case_when(
+      rank == "KINGDOM" & is.na(canonicalName_clean) ~ NA_character_,
+      rank == "KINGDOM" & canonicalName_clean == "Anatidae" ~ "family",
+      rank == "KINGDOM" & canonicalName_clean == "Cairina moschata" ~ "species",
+      rank == "KINGDOM" & canonicalName_clean == "Trachemys scripta" ~ "species",
+      rank == "KINGDOM" & canonicalName_clean == "Psittacula krameri" ~ "species",
+      TRUE ~ rank)) %>% 
+    mutate(rank_clean = str_to_lower(rank_clean))
+```
+
+
+Create `kingdom` from `domein`:
+
+```{r}
+input_data <- 
+  input_data %>% 
+    mutate(kingdom = case_when(
+      domein == "Dier" ~ "Animalia",
+      domein == "Plant" ~ "Plantae"))
+```
+
+## Remove occurrences of undetermined taxa
+
+Some occurrences cannot be linked (even manually) to a taxon, i.e. `canonicalName_clean` = `incertae sedis` or `NA`:
+
+```{r empty_scientificName}
 input_data %>%
-  group_by(kingdom, rankmarker) %>%
-  summarize(
-    `# taxa` = n_distinct(taxon_id),
-    `# distributions` = n()
-  ) %>%
-  adorn_totals("row")
+  filter(is.na(canonicalName_clean) | canonicalName_clean == "incertae sedis")
 ```
 
-Preview data:
+We remove them:
 
-```{r}
-input_data %>% head()
+```{r remove_empty_scn}
+input_data %<>%
+  filter(!is.na(canonicalName_clean) & canonicalName_clean != "incertae sedis")
 ```
 
-# Taxon core
-
-## Pre-processing
-
-Create a dataframe with unique taxa only (ignoring multiple distribution rows):
+# Darwin Core mapping
 
 ```{r}
-taxon <- input_data %>% distinct(taxon_id, .keep_all = TRUE)
-```
-
-## Term mapping
-
-Map the data to [Darwin Core Taxon](http://rs.gbif.org/core/dwc_taxon_2015-04-24.xml).
-
-Start with record-level terms which contain metadata about the dataset (which is generally the same for all records).
-
-### language
-
-```{r}
-taxon %<>% mutate(dwc_language = "my_language") # e.g. "en"
-```
-
-### license
-
-```{r}
-taxon %<>% mutate(dwc_license = "my_license") # e.g. "http://creativecommons.org/publicdomain/zero/1.0/"
-```
-
-### rightsHolder
-
-```{r}
-taxon %<>% mutate(dwc_rightsHolder = "my_rights_holder") # e.g. "INBO"
-```
-
-### datasetID
-
-```{r}
-taxon %<>% mutate(dwc_datasetID = "my_dataset_doi") # e.g. "https://doi.org/10.15468/xvuzfh"
-```
-
-### institutionCode
-
-```{r}
-taxon %<>% mutate(dwc_institutionCode = "my_institution_code") # e.g. "INBO"
-```
-
-### datasetName
-
-```{r}
-taxon %<>% mutate(dwc_datasetName = "my_dataset_title") # e.g. "Checklist of non-native freshwater fishes in Flanders, Belgium"
-```
-
-The following terms contain information about the taxon:
-
-### taxonID
-
-```{r}
-taxon %<>% mutate(dwc_taxonID = taxon_id)
-```
-
-### scientificName
-
-```{r}
-taxon %<>% mutate(dwc_scientificName = scientific_name)
-```
-
-### kingdom
-
-Inspect values:
-
-```{r}
-taxon %>%
-  group_by(kingdom) %>%
-  count()
-```
-
-Map values:
-
-```{r}
-taxon %<>% mutate(dwc_kingdom = kingdom)
-```
-
-### taxonRank
-
-Inspect values:
-
-```{r}
-taxon %>%
-  group_by(rankmarker) %>%
-  count()
-```
-
-Map values by recoding to the [GBIF rank vocabulary](http://rs.gbif.org/vocabulary/gbif/rank_2015-04-24.xml):
-
-```{r}
-taxon %<>% mutate(dwc_taxonRank = recode(rankmarker,
-  "agg."      = "speciesAggregate",
-  "infrasp."  = "infraspecificname",
-  "sp."       = "species",
-  "var."      = "variety",
-  .default    = "",
-  .missing    = ""
-))
-```
-
-Inspect mapped values: 
-
-```{r}
-taxon %>%
-  group_by(rankmarker, dwc_taxonRank) %>%
-  count()
-```
-
-### nomenclaturalCode
-
-```{r}
-taxon %<>% mutate(dwc_nomenclaturalCode = "my_nomenclaturalCode") # e.g. "ICZN"
-```
-
-## Post-processing
-
-Only keep the Darwin Core columns:
-
-```{r}
-taxon %<>% select(starts_with("dwc_"))
-```
-
-Drop the `dwc_` prefix:
-
-```{r}
-colnames(taxon) <- str_remove(colnames(taxon), "dwc_")
-```
-
-Preview data:
-
-```{r}
-taxon %>% head()
+input_data %<>% transmute(
+  type = "Event",
+  language = "en", 
+  license = "http://creativecommons.org/publicdomain/zero/1.0/", 
+  rightsHolder = "RATO", 
+  datasetID = "", 
+  institutionCode = "RATO", 
+  datasetName = "RATO - Daily operations commissioned by the province East Flanders, Belgium", 
+  basisOfRecord = "HumanObservation", 
+  eventID = event_id, 
+  occurrenceID = occurrence_id,
+  recordedBy = "RATO", 
+  organismQuantity = organism_quantity, 
+  organismQuantityType = organism_quantity_type,
+  occurrenceStatus = occurrence_status,
+  samplingProtocol = sampling_protocol,
+  samplingEffort = sampling_effort,
+  eventDate = as.POSIXct(laatst_bewerkt_datum), 
+  countryCode = "BE", 
+  municipality = gemeente,
+  verbatimLatitude = y,
+  verbatimLongitude = x,
+  verbatimCoordinateSystem = "Lambert coordinates",
+  verbatimSRS = "Belgian Datum 1972",
+  decimalLatitude = decimal_latitude,
+  decimalLongitude = decimal_longitude,
+  geodeticDatum = "WGS84",
+  coordinateUncertaintyInMeters = "30",
+  scientificName = canonicalName_clean,
+  kingdom = kingdom,
+  taxonRank = rank_clean)
 ```
 
 Save to CSV:
 
-```{r}
-write_csv(taxon, here("data", "processed", "taxon.csv"), na = "")
-```
-
-# Distribution extension
-
-## Pre-processing
-
-Create a dataframe with all data:
-
-```{r}
-distribution <- input_data
-```
-
-## Term mapping
-
-Map the data to [Species Distribution](http://rs.gbif.org/extension/gbif/1.0/distribution.xml).
-
-### taxonID
-
-```{r}
-distribution %<>% mutate(dwc_taxonID = taxon_id)
-```
-
-### locality
-
-Inspect values:
-
-```{r}
-distribution %>%
-  group_by(country_code, locality) %>%
-  count()
-```
-
-Map values to `locality` if provided, otherwise use the country name:
-
-```{r}
-distribution %<>% mutate(dwc_locality = case_when(
-  !is.na(locality) ~ locality,
-  country_code == "BE" ~ "Belgium",
-  country_code == "GB" ~ "United Kingdom",
-  country_code == "MK" ~ "Macedonia",
-  country_code == "NL" ~ "The Netherlands",
-  TRUE ~ "" # In other cases leave empty
-))
-```
-
-Inspect mapped values: 
-
-```{r}
-distribution %>%
-  group_by(country_code, locality, dwc_locality) %>%
-  count()
-```
-
-### countryCode
-
-Inspect values:
-
-```{r}
-distribution %>%
-  group_by(country_code) %>%
-  count()
-```
-
-Map values:
-
-```{r}
-distribution %<>% mutate(dwc_countryCode = country_code) 
-```
-
-### occurrenceStatus
-
-Inspect values:
-
-```{r}
-distribution %>%
-  group_by(occurrence_status) %>%
-  count()
-```
-
-Map values:
-
-```{r}
-distribution %<>% mutate(dwc_occurrenceStatus = occurrence_status) 
-```
-
-### threatStatus
-
-Inspect values:
-
-```{r}
-distribution %>%
-  group_by(threat_status) %>%
-  count()
-```
-
-Map values by recoding to the [IUCN threat status vocabulary](http://rs.gbif.org/vocabulary/iucn/threat_status.xml):
-
-```{r}
-distribution %<>% mutate(dwc_threatStatus = recode(threat_status,
-  "endangered" = "EN",
-  "vulnerable" = "VU"
-))
-```
-
-Inspect mapped values: 
-
-```{r}
-distribution %>%
-  group_by(threat_status, dwc_threatStatus) %>%
-  count()
-```
-
-### source
-
-Inspect values:
-
-```{r}
-distribution %>%
-  group_by(source) %>%
-  count() %>%
-  head() # Remove to show all values
-```
-
-Map values:
-
-```{r}
-distribution %<>% mutate(dwc_source = source) 
-```
-
-### occurrenceRemarks
-
-Inspect values:
-
-```{r}
-distribution %>%
-  group_by(remarks) %>%
-  count() %>%
-  head() # Remove to show all values
-```
-
-Map values:
-
-```{r}
-distribution %<>% mutate(dwc_occurrenceRemarks = remarks) 
-```
-
-## Post-processing
-
-Only keep the Darwin Core columns:
-
-```{r}
-distribution %<>% select(starts_with("dwc_"))
-```
-
-Drop the `dwc_` prefix:
-
-```{r}
-colnames(distribution) <- str_remove(colnames(distribution), "dwc_")
-```
-
-Preview data:
-
-```{r}
-distribution %>% head()
-```
-
-Save to CSV:
-
-```{r}
-write_csv(distribution, here("data", "processed", "distribution.csv"), na = "")
+```{r} 
+write_csv(input_data, here("data", "processed", "occurrence.csv"), na = "")
 ```
