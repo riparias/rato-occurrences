@@ -44,11 +44,11 @@ testthat::test_that("Right columns in right order", {
   testthat::expect_equal(names(dwc_occurrence), columns)
 })
 
-# testthat::test_that("datasetID is always present and is equal to DOI dataset", {
-#   testthat::expect_true(all(!is.na(dwc_occurrence$datasetID)))
-#   testthat::expect_equal(unique(dwc_occurrence$datasetID),
-#                          "https://doi.org/10.15468/29cggt")
-# })
+testthat::test_that("datasetID is always present and is equal to DOI dataset", {
+  testthat::expect_true(all(!is.na(dwc_occurrence$datasetID)))
+  testthat::expect_equal(unique(dwc_occurrence$datasetID),
+                         "https://doi.org/10.15468/fw2rbx")
+})
 
 testthat::test_that("occurrenceID is always present and is unique", {
   testthat::expect_true(all(!is.na(dwc_occurrence$occurrenceID)))
