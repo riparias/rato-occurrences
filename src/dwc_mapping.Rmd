@@ -28,13 +28,19 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = TRUE)
 Load libraries:
 
 ```{r message = FALSE}
-library(tidyverse)      # To do data science
-library(magrittr)       # To use %<>% pipes
+library(dplyr)          # To do data wrangling
+library(tidyr)          # To create tidy data
+library(readr)          # To read data
+library(stringr)        # To work with strings (chars)
+library(purrr)          # TO work with functions and vectors
 library(here)           # To find files
+library(tidylog)        # To provide feedback on dplyr functions
+library(magrittr)       # To use %<>% pipe
+library(sf)             # To convert coordinate systems
 library(janitor)        # To clean input data
 library(digest)         # To generate hashes
 library(rgbif)
-library(sf)
+library(sf)             # To convert coordinate systems
 ```
 
 # Read source data
