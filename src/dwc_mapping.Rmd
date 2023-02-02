@@ -365,7 +365,6 @@ Extract scientific names from GBIF based on `gbif_code`. First: extract all uniq
 gbif_codes <- input_data %>% select(gbif_code) %>% distinct()
 ```
 
-
 ```{r}
 scientific_names <- 
   map_dfr(gbif_codes$gbif_code, function(x) {
@@ -393,7 +392,7 @@ input_data <-
     mutate(canonicalName_clean = case_when(
       soort == "Andere (soort vermelden):" & opmerkingen == "1 barberie gevangen, 1 verdwenen sinds vorige donderdag" ~ "Cairina moschata",
       soort == "Andere (soort vermelden):" & opmerkingen == "2 stuks roodwangschildpad" ~ "Trachemys scripta",
-      soort == "Andere (soort vermelden):" & is.na(opmerkingen) ~ "unknown",
+      soort == "Andere (soort vermelden):" & is.na(opmerkingen) ~ NA_character_,
       soort == "Halsbandparkiet:" ~ "Psittacula krameri",
       soort == "Ganzenactie" ~ "Anatidae",
       soort == "gedomesticeerde gans" & opmerkingen == "Brandganzen" ~ "Branta leucopsis",
@@ -407,7 +406,7 @@ Clean `rank`:
 ```{r}
 input_data <- input_data %>% 
     mutate(rank_clean = case_when(
-      rank == "KINGDOM" & canonicalName_clean == "unknown" ~ "unknown",
+      rank == "KINGDOM" & is.na(canonicalName_clean) ~ NA_character_,
       rank == "KINGDOM" & canonicalName_clean == "Anatidae" ~ "family",
       rank == "KINGDOM" & canonicalName_clean == "Cairina moschata" ~ "species",
       rank == "KINGDOM" & canonicalName_clean == "Trachemys scripta" ~ "species",
@@ -425,6 +424,22 @@ input_data <-
     mutate(kingdom = case_when(
       domein == "Dier" ~ "Animalia",
       domein == "Plant" ~ "Plantae"))
+```
+
+## Remove occurrences of undetermined taxa
+
+Some occurrences cannot be linked (even manually) to a taxon, i.e. `canonicalName_clean` = `incertae sedis` or `NA`:
+
+```{r empty_scientificName}
+input_data %>%
+  filter(is.na(canonicalName_clean) | canonicalName_clean == "incertae sedis")
+```
+
+We remove them:
+
+```{r remove_empty_scn}
+input_data %<>%
+  filter(!is.na(canonicalName_clean) & canonicalName_clean != "incertae sedis")
 ```
 
 # Darwin Core mapping
@@ -468,4 +483,3 @@ Save to CSV:
 ```{r} 
 write_csv(input_data, here("data", "processed", "occurrence.csv"), na = "")
 ```
-
