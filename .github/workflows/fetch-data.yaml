@@ -1,14 +1,12 @@
 on:
-#   schedule:
-#     - cron: "0 3 * * *"
-
-#   push:
-#     branches:
-#     - main
-#     paths:
-#     - data/raw/**
-#     - src/**
-
+  schedule:
+    - cron: "0 3 * * *"
+  push:
+    branches:
+    - main
+    paths:
+    - data/raw/**
+    - src/**
   workflow_dispatch:
     branches: [ main ]
 
