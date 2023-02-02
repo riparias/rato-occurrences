@@ -2,7 +2,7 @@
 installed <- rownames(installed.packages())
 # specify packages we need
 required <- c("dplyr", "readr", "stringr", "tidyr",
-              "purrr", "tidylog", "magrittr", "here",
+              "purrr", "tidylog", "magrittr", "here", "janitor",
               "rgbif", # to work with GBIF data
               "httr", "ows4R", # to get data via WFS
               "sf", # to convert coordinate system
