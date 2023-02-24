@@ -469,7 +469,7 @@ input_data %<>% transmute(
   verbatimLongitude = x,
   verbatimCoordinateSystem = "Lambert coordinates",
   verbatimSRS = "Belgian Datum 1972",
-  decimalLatitude = round(decimalLatitude, digits = 5),
+  decimalLatitude = round(decimal_latitude, digits = 5),
   decimalLongitude = round(decimal_longitude, digits = 5),
   geodeticDatum = "WGS84",
   coordinateUncertaintyInMeters = "30",
