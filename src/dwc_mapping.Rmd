@@ -367,7 +367,23 @@ input_data <-
 
 ## Extract scientific name from GBIF code
 
-Extract scientific names from GBIF based on `gbif_code`. First: extract all unique gbif_codes from `input_data`.
+Extract scientific names from GBIF based on `gbif_code`. 
+
+First: correct some codes:
+
+```{r}
+input_data %<>%
+  mutate(gbif_code = case_when(
+    soort == "Waterteunisbloem" ~ 5421039,
+    soort == "Rivierkreeft" & 
+      (str_detect(waarneming, "Rode Amerikaanse rivierkreeft") | 
+         str_detect(opmerkingen, "Amerikaanse")) ~ 2227300, 
+    TRUE ~ gbif_code
+  )
+)
+```
+
+Second: extract all unique gbif_codes from `input_data`.
 
 ```{r}
 gbif_codes <- input_data %>% select(gbif_code) %>% distinct()
