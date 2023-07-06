@@ -116,6 +116,14 @@ input_data %<>% mutate(waarneming = recode(waarneming,
   "Haard vastgesteld = 0; Waarneming onzeker = 1;" = "Waarneming onzeker = 1;"))
 ```
 
+Remove occurrences containing multiple type - value pairs information in column `waarneming` (patch until [#23](https://github.com/riparias/rato-occurrences/issues/23) is solved):
+
+```{r}
+input_data %<>%
+  filter(is.na(.data$waarneming) | 
+           !str_detect(.data$waarneming, pattern = "; "))
+```
+
 Split into different columns: `waarneming_type` and `waarneming_kwantiteit`:
 
 ```{r}
@@ -135,7 +143,7 @@ input_data <-
       pattern = ";"))
 ```
 
-Map `Organism_quantity`:
+Map `organism_quantity`:
 
 ```{r}
 input_data %<>% 
@@ -359,7 +367,23 @@ input_data <-
 
 ## Extract scientific name from GBIF code
 
-Extract scientific names from GBIF based on `gbif_code`. First: extract all unique gbif_codes from `input_data`.
+Extract scientific names from GBIF based on `gbif_code`. 
+
+First: correct some codes:
+
+```{r}
+input_data %<>%
+  mutate(gbif_code = case_when(
+    soort == "Waterteunisbloem" ~ 5421039,
+    soort == "Rivierkreeft" & 
+      (str_detect(waarneming, "Rode Amerikaanse rivierkreeft") | 
+         str_detect(opmerkingen, "Amerikaanse")) ~ 2227300, 
+    TRUE ~ gbif_code
+  )
+)
+```
+
+Second: extract all unique gbif_codes from `input_data`.
 
 ```{r}
 gbif_codes <- input_data %>% select(gbif_code) %>% distinct()
@@ -445,7 +469,8 @@ input_data %<>%
 # Darwin Core mapping
 
 ```{r}
-input_data %<>% transmute(
+dwc_data <- input_data
+dwc_data %<>% mutate(
   type = "Event",
   language = "en", 
   license = "http://creativecommons.org/publicdomain/zero/1.0/", 
@@ -475,11 +500,13 @@ input_data %<>% transmute(
   coordinateUncertaintyInMeters = "30",
   scientificName = canonicalName_clean,
   kingdom = kingdom,
-  taxonRank = rank_clean)
+  taxonRank = rank_clean,
+  .keep = "none"
+)
 ```
 
 Save to CSV:
 
 ```{r} 
-write_csv(input_data, here("data", "processed", "occurrence.csv"), na = "")
+write_csv(dwc_data, here("data", "processed", "occurrence.csv"), na = "")
 ```
