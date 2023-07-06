@@ -32,13 +32,14 @@ library(readr)    # to read csv files
 WFS link:
 
 ```{r link}
-wfs <- "https://geodiensten.oost-vlaanderen.be/arcgis/services/MIL/RATO_Public_Data/MapServer/WFSServer"
+wfs_rato <- "https://gis.oost-vlaanderen.be/server/rest/services/RATO/RATO_Public_Data/MapServer/WFSServer"
+wfs_rato <- "https://gis.oost-vlaanderen.be/server/services/RATO/RATO_Public_Data/MapServer/WFSServer"
 ```
 
 Create WFS client:
 
 ```{r create_client}
-rato_client <- ows4R::WFSClient$new(wfs, serviceVersion = "2.0.0")
+rato_client <- ows4R::WFSClient$new(wfs_rato, serviceVersion = "2.0.0")
 ```
 
 Overview of the layers available:
@@ -51,7 +52,7 @@ print(layers)
 Request data from layer `Waarnemingen_Public:Invasieve_uitheemse_soorten`:
 
 ```{r request}
-url <- httr::parse_url(wfs)
+url <- httr::parse_url(wfs_rato)
 url$query <- list(service = "wfs",
                   request = "GetFeature",
                   typename = "RATO_Public_Data",
