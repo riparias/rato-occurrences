@@ -168,7 +168,12 @@ testthat::test_that("scientificName is never NA and one of the list", {
     "Branta canadensis",
     "Branta leucopsis",
     "Anatidae",
-    "Anser anser"
+    "Anser anser",
+    "Impatiens glandulifera",
+    "Myocastor coypus",
+    "Lysichiton americanus",
+    "Procambarus clarkii",
+    "Ludwigia grandiflora"
   )
   testthat::expect_true(all(!is.na(dwc_occurrence$scientificName)))
   testthat::expect_true(all(dwc_occurrence$scientificName %in% species))
