@@ -116,6 +116,14 @@ input_data %<>% mutate(waarneming = recode(waarneming,
   "Haard vastgesteld = 0; Waarneming onzeker = 1;" = "Waarneming onzeker = 1;"))
 ```
 
+Remove occurrences containing multiple type - value pairs information in column `waarneming` (patch until [#23](https://github.com/riparias/rato-occurrences/issues/23) is solved):
+
+```{r}
+input_data %<>%
+  filter(is.na(.data$waarneming) | 
+           !str_detect(.data$waarneming, pattern = "; "))
+```
+
 Split into different columns: `waarneming_type` and `waarneming_kwantiteit`:
 
 ```{r}
