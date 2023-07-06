@@ -469,7 +469,8 @@ input_data %<>%
 # Darwin Core mapping
 
 ```{r}
-input_data %<>% transmute(
+dwc_data <- input_data
+dwc_data %<>% mutate(
   type = "Event",
   language = "en", 
   license = "http://creativecommons.org/publicdomain/zero/1.0/", 
@@ -499,11 +500,13 @@ input_data %<>% transmute(
   coordinateUncertaintyInMeters = "30",
   scientificName = canonicalName_clean,
   kingdom = kingdom,
-  taxonRank = rank_clean)
+  taxonRank = rank_clean,
+  .keep = "none"
+)
 ```
 
 Save to CSV:
 
 ```{r} 
-write_csv(input_data, here("data", "processed", "occurrence.csv"), na = "")
+write_csv(dwc_data, here("data", "processed", "occurrence.csv"), na = "")
 ```
