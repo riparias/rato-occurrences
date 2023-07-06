@@ -470,7 +470,7 @@ input_data %<>%
 
 ```{r}
 dwc_data <- input_data
-dwc_data %<>% mutate(
+dwc_data %<>% transmute(
   type = "Event",
   language = "en", 
   license = "http://creativecommons.org/publicdomain/zero/1.0/", 
@@ -500,8 +500,7 @@ dwc_data %<>% mutate(
   coordinateUncertaintyInMeters = "30",
   scientificName = canonicalName_clean,
   kingdom = kingdom,
-  taxonRank = rank_clean,
-  .keep = "none"
+  taxonRank = rank_clean
 )
 ```
 
