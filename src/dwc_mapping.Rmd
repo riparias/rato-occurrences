@@ -143,7 +143,7 @@ input_data <-
       pattern = ";"))
 ```
 
-Map `Organism_quantity`:
+Map `organism_quantity`:
 
 ```{r}
 input_data %<>% 
