@@ -81,6 +81,6 @@ jobs:
           target_branch: main
           title: "[AUTO] Update data"
           template: .github/PULL_REQUEST_TEMPLATE.md
-          reviewer: damianooldoni
+          reviewer: damianooldoni,PietrH
           label: automated workflow
           get_diff: false
