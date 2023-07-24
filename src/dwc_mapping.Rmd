@@ -19,7 +19,7 @@ output:
 #    toc_depth: 3
 ---
 
-# Setup 
+# Setup
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = TRUE)
@@ -53,12 +53,11 @@ raw_data <- readr::read_csv(
 ) 
 ```
 
-Rename `raw_data` to `input_data` so we can keep original values 
+Rename `raw_data` to `input_data` so we can keep original values
 
 ```{r}
 input_data <- raw_data
 ```
-
 
 # Process source data
 
@@ -73,8 +72,7 @@ input_data <-
     clean_names()
 ```
 
-`object_id` is the unique identifier for each occurrence. This will be the `occurrenceID`. This field should contain unique values only. 
-`dossier_id` is the unique identifier for each sampling event. This will be the `eventID`
+`object_id` is the unique identifier for each occurrence. This will be the `occurrenceID`. This field should contain unique values only. `dossier_id` is the unique identifier for each sampling event. This will be the `eventID`
 
 Check whether `object_id` is unique (value should be `0`)
 
@@ -82,7 +80,7 @@ Check whether `object_id` is unique (value should be `0`)
 anyDuplicated(input_data$objectid)
 ```
 
-Remove all rows for `Domein` = `Werken` 
+Remove all rows for `Domein` = `Werken`
 
 ```{r}
 input_data %<>% filter(domein != "Werken")
@@ -98,9 +96,9 @@ input_data <-
 
 ```
 
-## Extract information from "waarnemingen"  
+## Extract information from "waarnemingen"
 
-The field `waarnemingen` is used to map `organismQuantity`, `organismQuantityType` and `occurrenceStatus`. This fields need to be cleaned before mapping. 
+The field `waarnemingen` is used to map `organismQuantity`, `organismQuantityType` and `occurrenceStatus`. This fields need to be cleaned before mapping.
 
 ```{r}
 input_data %>% 
@@ -166,7 +164,7 @@ input_data <-
       waarneming_type == "Secundair nest vastgesteld" ~ "nest",
       TRUE ~ ""
     ))
-``` 
+```
 
 Map `occurrence_status`:
 
@@ -200,7 +198,7 @@ input_data %>%
   summarize(records = n()) 
 ```
 
-## Extract information from "materiaal_vast"  
+## Extract information from "materiaal_vast"
 
 Information from `materiaal_vast` can be used for `samplingProtocol`
 
@@ -241,7 +239,7 @@ sampling_protocol <-
 
 Separate on " = " and split in different columns:
 
-```{r} 
+```{r}
 sampling_protocol %<>% 
     separate(
       col = materiaal_vast,
@@ -251,12 +249,12 @@ sampling_protocol %<>%
 
 remove "(aantal)" for easier mapping:
 
-```{r} 
+```{r}
 sampling_protocol %<>% 
    mutate(materiaal = str_remove(materiaal,"\\s\\(aantal\\)")) 
 ```
 
-remove all rows for which `kwantiteit = NA
+remove all rows for which \`kwantiteit = NA
 
 ```{r}
 sampling_protocol %<>% 
@@ -367,7 +365,7 @@ input_data <-
 
 ## Extract scientific name from GBIF code
 
-Extract scientific names from GBIF based on `gbif_code`. 
+Extract scientific names from GBIF based on `gbif_code`.
 
 First: correct some codes:
 
@@ -439,7 +437,6 @@ input_data <- input_data %>%
     mutate(rank_clean = str_to_lower(rank_clean))
 ```
 
-
 Create `kingdom` from `domein`:
 
 ```{r}
@@ -506,6 +503,6 @@ dwc_data %<>% transmute(
 
 Save to CSV:
 
-```{r} 
+```{r}
 write_csv(dwc_data, here("data", "processed", "occurrence.csv"), na = "")
 ```
