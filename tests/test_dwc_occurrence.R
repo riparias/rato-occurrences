@@ -1,11 +1,12 @@
 # load libraries
-library(testthat)
-library(readr)
-library(dplyr)
+library(testthat, warn.conflicts = FALSE, quietly = TRUE)
+library(readr, warn.conflicts = FALSE, quietly = TRUE)
+library(dplyr, warn.conflicts = FALSE, quietly = TRUE)
 
 # read proposed new version of the DwC mapping
 occs_path <- here::here("data", "processed", "occurrence.csv")
-dwc_occurrence <- readr::read_csv(occs_path, guess_max = 10000)
+dwc_occurrence <-
+  readr::read_csv(occs_path, guess_max = 10000, show_col_types = FALSE)
 
 # tests
 testthat::test_that("Right columns in right order", {
