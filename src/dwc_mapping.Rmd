@@ -197,6 +197,31 @@ input_data %>%
   group_by(waarneming, organism_quantity, organism_quantity_type, occurrence_status) %>% 
   summarize(records = n()) 
 ```
+## Extract information from "opmerkingen"
+
+Some records have information regarding occurrenceStatus in the "opmerkingen" field
+
+When `Dossier_Status` is `Opvolging`, old field values get copied. So even if "Waarneming" or "Actie" lead to a presence record, the Opmerkingen could still indicate a absence record. 
+
+```{r}
+input_data <-
+  input_data %>%
+  mutate(
+    occurrence_status = case_when(
+      opmerkingen == "Geen planten gevonden" |
+        opmerkingen == "Hoge waterstand. Geen planten zichtbaar" |
+        opmerkingen == "Geen planten" |
+        opmerkingen == "Geen plant meer" |
+        opmerkingen == "Geen spoor gevonden" |
+        opmerkingen == "Geen sporen gevonden!" |
+        opmerkingen == "Geen ganzen gevonden" |
+        opmerkingen == "Nest reeds door de brandweer behandeld. Geen beweging meer te zien."
+      ~ "absent",
+      
+      .default = occurrence_status # in all other cases, leave it as is
+    )
+  )
+```
 
 ## Extract information from "materiaal_vast"
 
