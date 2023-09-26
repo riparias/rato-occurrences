@@ -100,7 +100,7 @@ input_data <-
 
 The field `waarnemingen` is used to map `organismQuantity`, `organismQuantityType` and `occurrenceStatus`. This fields need to be cleaned before mapping.
 
-```{r}
+```{r list waarneming values}
 input_data %>% 
   group_by(waarneming) %>% 
   summarise(records = n()) %>% 
@@ -109,14 +109,14 @@ input_data %>%
 
 First, we need to clean `Haard vastgesteld = 0; Waarneming onzeker = 1;`. This should be `Waarneming onzeker = 1;` (error in database):
 
-```{r}
+```{r recode some known errors}
 input_data %<>% mutate(waarneming = recode(waarneming,
   "Haard vastgesteld = 0; Waarneming onzeker = 1;" = "Waarneming onzeker = 1;"))
 ```
 
 Remove occurrences containing multiple type - value pairs information in column `waarneming` (patch until [#23](https://github.com/riparias/rato-occurrences/issues/23) is solved):
 
-```{r}
+```{r remove records with multiple type value pairs for waarneming}
 input_data %<>%
   filter(is.na(.data$waarneming) | 
            !str_detect(.data$waarneming, pattern = "; "))
@@ -143,7 +143,7 @@ input_data <-
 
 Map `organism_quantity`:
 
-```{r}
+```{r map organism_quantity}
 input_data %<>% 
   mutate(organism_quantity = case_when(
     waarneming_type == "Vastgesteld (in m²)" |
@@ -155,7 +155,7 @@ input_data %<>%
 
 Map `organism_quantity_type`:
 
-```{r}
+```{r map organism_quantity_type}
 input_data <-
   input_data %>% 
     mutate(organism_quantity_type = case_when(
@@ -168,7 +168,7 @@ input_data <-
 
 Map `occurrence_status`:
 
-```{r}
+```{r map occurrence_status}
 input_data <-
   input_data %>%
     mutate(occurrence_status = case_when(
@@ -192,7 +192,7 @@ input_data <-
 
 Screen mapping:
 
-```{r}
+```{r display mapping for screening}
 input_data %>% 
   group_by(waarneming, organism_quantity, organism_quantity_type, occurrence_status) %>% 
   summarize(records = n()) 
@@ -203,7 +203,7 @@ Some records have information regarding occurrenceStatus in the "opmerkingen" fi
 
 When `Dossier_Status` is `Opvolging`, old field values get copied. So even if "Waarneming" or "Actie" lead to a presence record, the Opmerkingen could still indicate a absence record. 
 
-```{r}
+```{r parse opmerkingen and map to occurrence_status}
 input_data <-
   input_data %>%
   mutate(
@@ -227,7 +227,7 @@ input_data <-
 
 Information from `materiaal_vast` can be used for `samplingProtocol`
 
-```{r}
+```{r display values for materiaal_vast}
 input_data %>% 
   group_by(materiaal_vast) %>% 
   summarise(records = n()) %>% 
@@ -236,7 +236,7 @@ input_data %>%
 
 First split on ";" and separate on "="
 
-```{r}
+```{r split and seperate materiaal_vast}
 sampling_protocol <-
   input_data %>% 
     select(occurrence_id, materiaal_vast) %>% 
