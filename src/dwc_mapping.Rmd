@@ -298,7 +298,8 @@ sampling_protocol %>%
 Translate to English (generate `protocol`):
 
 ```{r}
-sampling_protocol %<>% 
+sampling_protocol <-
+  sampling_protocol %>% 
   mutate(protocol = recode(materiaal,
     "Andere" = "other",
     "Conibearklem" = "conibear trap",
@@ -316,7 +317,8 @@ sampling_protocol %<>%
 Add `effort` to the dataset. This is the sampling effort and is based on the values in `kwantiteit`:
 
 ```{r}
-sampling_protocol %<>% 
+sampling_protocol <-
+  sampling_protocol %>% 
   mutate(effort = case_when(
     kwantiteit == "0" ~ "",
     TRUE ~ paste(kwantiteit, protocol, sep = " ")))
