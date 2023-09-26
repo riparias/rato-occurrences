@@ -362,7 +362,7 @@ sampling_protocol <-
 
 Merge `sampling_protocol` with `input_data`:
 
-```{r}
+```{r merge sampling_protocol df with input_data df}
 input_data %<>% left_join(
   y = sampling_protocol,
   by = "occurrence_id")
