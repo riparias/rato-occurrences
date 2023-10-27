@@ -54,7 +54,7 @@ raw_data <- readr::read_csv(
 ) 
 ```
 
-Rename `raw_data` to `input_data` so we can keep original values
+Rename `raw_data` to `input_data` so we can keep original values, `input_data` will be overwritten at several steps during the mapping.
 
 ```{r}
 input_data <- raw_data
