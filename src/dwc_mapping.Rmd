@@ -402,6 +402,15 @@ observations_from_interventions <-
          ) %>% 
   ungroup() # remove grouping as to avoid it creating trouble later on
 ```
+
+```{r add new occurrences to `input_data`}
+input_data <- 
+  input_data %>% 
+  # we will be merging the old occurrenceID which is a double with a character,
+  # so we need to convert types
+  mutate(occurrence_id = as.character(occurrence_id)) %>% 
+  bind_rows(observations_from_interventions)
+```
 ## Transform Lambert coordinates to WGS84
 
 Coordinates in `x` and `y` are given in the Belgian Lambert system, they should be transformed to World Geodetic System 84 coordinate system
