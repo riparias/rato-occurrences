@@ -197,3 +197,11 @@ testthat::test_that("taxonRank is always filled in and one of the list", {
     all(dwc_occurrence$taxonRank %in% taxon_ranks)
   )
 })
+
+testthat::test_that("There should be at least one casual observation", {
+  testthat::expect_gte(
+    nrow(filter(dwc_occurrence, samplingProtocol == "casual observation")),
+    1
+  )
+})
+
