@@ -389,6 +389,19 @@ first_interventions <-
   slice_min(order_by = laatst_bewerkt_datum, n = 1)
 
 ```
+
+We are keeping all original fields from the intervention in the new observation,
+except occurrence_id. If we need to drop fields in the future, this is where to 
+do it.
+
+```{r create new observations from first interventions}
+observations_from_interventions <- 
+  first_interventions %>% 
+  mutate(occurrence_id = paste0(occurrence_id, "-cas"),
+         sampling_protocol = "casual observation"
+         ) %>% 
+  ungroup() # remove grouping as to avoid it creating trouble later on
+```
 ## Transform Lambert coordinates to WGS84
 
 Coordinates in `x` and `y` are given in the Belgian Lambert system, they should be transformed to World Geodetic System 84 coordinate system
