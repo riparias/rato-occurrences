@@ -79,6 +79,7 @@ Check whether `object_id` is unique (value should be `0`)
 
 ```{r}
 anyDuplicated(input_data$objectid)
+stopifnot(!anyDuplicated(input_data$objectid))
 ```
 
 Remove all rows for `Domein` = `Werken`
