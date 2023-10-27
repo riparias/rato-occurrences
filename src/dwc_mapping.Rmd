@@ -336,7 +336,7 @@ sampling_protocol <-
               sampling_effort = paste(effort, collapse = " | "))
 ```
 
-Now, the field `sampling_effort` contains some unwanted, repeated hashes. With this code, we remove them:
+Now, the field `sampling_effort` contains some unwanted, repeated pipes `|`. With this code, we remove them:
 
 ```{r}
 sampling_protocol <- 
