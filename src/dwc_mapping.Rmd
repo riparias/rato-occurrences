@@ -411,6 +411,20 @@ input_data <-
   mutate(occurrence_id = as.character(occurrence_id)) %>% 
   bind_rows(observations_from_interventions)
 ```
+## Set samplingProtocol to `casual observation` for casual observations
+
+An observation doesn't have a `samplingProtocol.` So all empty values for `samplingProtocol` should be casual observations, except when `dossier_status == "Verwerkt en afgesloten"` which _can_ mean that it's an absence. 
+
+```{r set most NA `sampling_protocol` to "casual observation"}
+input_data <- input_data %>% 
+  mutate(sampling_protocol = case_when(
+    dossier_status != "Verwerkt en afgesloten" & is.na(sampling_protocol) ~
+      "casual observation",
+    .default = sampling_protocol
+  ))
+```
+
+
 ## Transform Lambert coordinates to WGS84
 
 Coordinates in `x` and `y` are given in the Belgian Lambert system, they should be transformed to World Geodetic System 84 coordinate system
