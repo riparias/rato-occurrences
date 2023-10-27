@@ -375,7 +375,7 @@ input_data %<>% left_join(
 Terminology:
 
 - Interventions: have a `samplingProtocol`, have `Dossier_status == "Opvolging"`
-- Strict observations: no sampling took place, these have no samplingProtocol
+- Strict observations: no sampling took place, these have no `samplingProtocol`
 
 All observations should have `samplingProtocol` set to `casual observation`, this 
 includes both strict observations and those created from interventions.
