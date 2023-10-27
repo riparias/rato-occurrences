@@ -33,7 +33,7 @@ library(dplyr)          # To do data wrangling
 library(tidyr)          # To create tidy data
 library(readr)          # To read data
 library(stringr)        # To work with strings (chars)
-library(purrr)          # TO work with functions and vectors
+library(purrr)          # To work with functions and vectors
 library(here)           # To find files
 library(tidylog)        # To provide feedback on dplyr functions
 library(magrittr)       # To use %<>% pipe
