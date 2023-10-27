@@ -69,7 +69,7 @@ Clean data somewhat:
 ```{r}
 input_data <- 
   input_data %>% 
-    remove_empty("rows") %>% 
+    remove_empty(which = "rows", quiet = FALSE) %>% 
     clean_names()
 ```
 
