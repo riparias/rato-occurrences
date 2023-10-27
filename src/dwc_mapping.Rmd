@@ -370,6 +370,25 @@ input_data %<>% left_join(
   by = "occurrence_id")
 ```
 
+## Split off the first intervention per event, and duplicate it to a strict observation
+
+Terminology:
+
+- Interventions: have a `samplingProtocol`, have `Dossier_status == "Opvolging"`
+- Strict observations: no sampling took place, these have no samplingProtocol
+
+All observations should have `samplingProtocol` set to `casual observation`, this 
+includes both strict observations and those created from interventions.
+
+```{r Extract the first interventions}
+first_interventions <- 
+  input_data %>% 
+  filter(dossier_status == "Opvolging",
+         !is.na(sampling_protocol)) %>% 
+  group_by(event_id) %>% 
+  slice_min(order_by = laatst_bewerkt_datum, n = 1)
+
+```
 ## Transform Lambert coordinates to WGS84
 
 Coordinates in `x` and `y` are given in the Belgian Lambert system, they should be transformed to World Geodetic System 84 coordinate system
