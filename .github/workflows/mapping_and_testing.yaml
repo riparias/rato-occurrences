@@ -65,4 +65,5 @@ jobs:
       - name: Run tests
         run: |
           source("tests/test_dwc_occurrence.R")
+          source("tests/test_raw_rato_data.R")
         shell: Rscript {0}
