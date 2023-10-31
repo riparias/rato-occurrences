@@ -25,6 +25,8 @@ library(httr)     # generic webservice package
 library(ows4R)    # interface for OGC webservices
 library(here)     # to work with paths
 library(readr)    # to read csv files
+library(safer)    # to handle encryption and decryption
+library(dplyr)    # to do data wrangling
 ```
 
 # Fetch data from WFS
@@ -82,7 +84,38 @@ raw_occurrences <- readr::read_csv(
 
 # remove GmlId column
 raw_occurrences <- subset(raw_occurrences, select = -GmlId)
+```
+## Write raw_occurrences with Opmerkingen encrypted
+### Fetch key
+The key for encryption/decryption is stored as an environmental variable
+```{r fetch secret}
+secret_key <- Sys.getenv("opmerkingen_secret")
+```
+## Encrypt the Opmerkingen fields
+```{r encrypt sensitive fields}
+raw_occurrences <-
+  raw_occurrences %>%
+  mutate(
+    .keep = "used",
+    Opmerkingen_d =
+      purrr::map2_chr(
+        OBJECTID,
+        Opmerkingen, ~
+          safer::encrypt_string(
+            key = secret_key,
+            ascii = TRUE,
+            string = paste(
+              sep = "|",
+              .x,
+              stringr::str_replace_na(.y, replacement = "")
+            )
+          )
+      )
+  )
+```
 
+
+```{r save raw_occurrences}
 # save raw occurrences (overwrite file)
 readr::write_csv(
   x = raw_occurrences,
