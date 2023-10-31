@@ -92,25 +92,28 @@ The key for encryption/decryption is stored as an environmental variable
 secret_key <- Sys.getenv("opmerkingen_secret")
 ```
 ## Encrypt the Opmerkingen fields
+
+The `OJECTID` column is appended to the `Opmerkingen` field so even empty values will result in a different encrypted string.
+```{r function to encrypt column}
+encrypt_column <- function(column_to_encrypt, id_col, key) {
+  purrr::map2_chr(id_col, column_to_encrypt, ~ safer::encrypt_string(
+    key = key,
+    ascii = TRUE,
+    string = paste(
+      sep = "|",
+      .x,
+      stringr::str_replace_na(.y, replacement = "")
+    )
+  ))
+}
+```
+
 ```{r encrypt sensitive fields}
 raw_occurrences <-
-  raw_occurrences %>%
+  raw_occurrences %>% 
   mutate(
-    .keep = "used",
-    Opmerkingen_d =
-      purrr::map2_chr(
-        OBJECTID,
-        Opmerkingen, ~
-          safer::encrypt_string(
-            key = secret_key,
-            ascii = TRUE,
-            string = paste(
-              sep = "|",
-              .x,
-              stringr::str_replace_na(.y, replacement = "")
-            )
-          )
-      )
+    Opmerkingen = encrypt_column(Opmerkingen, OBJECTID, secret_key),
+    Opmerkingen_admin = encrypt_column(Opmerkingen_admin, OBJECTID, secret_key)
   )
 ```
 
