@@ -14,3 +14,34 @@ testthat::test_that("Opmerkingen fields are removed from raw_data.csv", {
   testthat::expect_false(any(stringr::str_starts(colnames(raw_data), "Opmerkingen")))
 })
 
+testthat::test_that("raw_data.csv has the expected columns", {
+  testthat::expect_named(
+    raw_data,
+    c(
+      "Dossier_ID",
+      "OBJECTID",
+      "Dossier_Status",
+      "Domein",
+      "Soort",
+      "Waarneming",
+      "Actie",
+      "Materiaal_Vast",
+      "Melder_Naam",
+      "Melder_Klant",
+      "Planning_Datum",
+      "X",
+      "Y",
+      "Gemeente",
+      "Aard_Locatie",
+      "GBIF_Code",
+      "Dossier_Link",
+      "Dossier_Link_ID",
+      "Hoofddossier_ID",
+      "Aangemaakt_Datum",
+      "Laatst_Bewerkt_Datum",
+      "Datum_Van",
+      "Geometrie_Type",
+      "Shape"
+    )
+  )
+})
