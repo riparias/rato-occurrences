@@ -112,8 +112,10 @@ encrypt_column <- function(column_to_encrypt, id_col, key) {
 raw_occurrences <-
   raw_occurrences %>% 
   mutate(
-    Opmerkingen = encrypt_column(Opmerkingen, OBJECTID, secret_key),
-    Opmerkingen_admin = encrypt_column(Opmerkingen_admin, OBJECTID, secret_key)
+    Opmerkingen =
+      encrypt_column(Opmerkingen, OBJECTID, key = secret_key),
+    Opmerkingen_admin =
+      encrypt_column(Opmerkingen_admin, OBJECTID, key = secret_key)
   )
 ```
 
