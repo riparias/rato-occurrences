@@ -25,6 +25,7 @@ library(httr)     # generic webservice package
 library(ows4R)    # interface for OGC webservices
 library(here)     # to work with paths
 library(readr)    # to read csv files
+library(dplyr)    # To do data wrangling
 ```
 
 # Fetch data from WFS
@@ -61,11 +62,13 @@ url$query <- list(service = "wfs",
 request <- httr::build_url(url)
 ```
 
-Download requested data as csv and save them  as `rato_data.csv`:
+Download requested data as csv and load them  as `raw_occurrences`:
 
 ```{r download_data}
-file_path <- here::here("data", "raw", "rato_data.csv")
-httr::GET(url = request, write_disk(file_path, overwrite = TRUE))
+raw_occurrences <- 
+  httr::GET(url = request) %>% 
+  httr::content(na = "",
+                col_types = readr::cols(.default = readr::col_character()))
 ```
 
 ## Remove column `GmlID`
@@ -74,19 +77,38 @@ The column `GMlID` is not present in the database of RATO vzw: it is added by th
 
 ```{r remove_GmlID}
 # read raw occurrences
-raw_occurrences <- readr::read_csv(
-  file = file_path,
-  na = "",
-  col_types = readr::cols(.default = readr::col_character())
-)
+# raw_occurrences <- readr::read_csv(
+#   file = file_path,
+#   na = "",
+#   col_types = readr::cols(.default = readr::col_character())
+# )
 
 # remove GmlId column
 raw_occurrences <- subset(raw_occurrences, select = -GmlId)
+```
 
-# save raw occurrences (overwrite file)
+## Remove all Opmerkingen columns
+
+It is possible personal information is entered in the `Opmerkingen` fields, we want to avoid releasing this information by removing them in the file that is written to `data/raw`.
+
+```{r}
+raw_occurrences_to_write <-
+  dplyr::select(raw_occurrences, -tidyselect::starts_with("Opmerkingen"))
+```
+
+
+## Save raw occurrences (overwrite file)
+
+```{r save raw_occurrences}
+file_path <- here::here("data", "raw", "rato_data.csv")
 readr::write_csv(
-  x = raw_occurrences,
+  x = raw_occurrences_to_write,
   file = file_path,
   na = "",
 )
+
+# remove the raw data object without the `Opmerkingen` columns from the
+# environment to avoid confusion
+rm(list = "raw_occurrences_to_write")
+
 ```
