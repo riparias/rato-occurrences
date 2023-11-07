@@ -10,8 +10,42 @@ raw_data <- readr::read_csv(
   guess_max = 10000, show_col_types = FALSE)
 
 # tests
-testthat::test_that("Opmerkingen fields are removed from raw_data.csv", {
-  testthat::expect_false(any(stringr::str_starts(colnames(raw_data), "Opmerkingen")))
+testthat::test_that("Opmerkingen fields are encrypted in raw_data.csv", {
+  # all NA values should be salted and encrypted
+  testthat::expect_false(any(is.na(raw_data$Opmerkingen)))
+  testthat::expect_false(any(is.na(raw_data$Opmerkingen_admin)))
+  # there are no spaces in the encrypted strings
+  testthat::expect_false(
+    any(stringr::str_detect(raw_data$Opmerkingen, " "))
+    )
+  testthat::expect_false(
+    any(stringr::str_detect(raw_data$Opmerkingen_admin, " "))
+    )
+  # test for some common words that occur in the Opmerkingen
+  testthat::expect_false(
+    any(stringr::str_detect(raw_data$Opmerkingen, " de "))
+  )
+  testthat::expect_false(
+    any(stringr::str_detect(raw_data$Opmerkingen, " en "))
+  )
+  testthat::expect_false(
+    any(stringr::str_detect(raw_data$Opmerkingen, " op "))
+  )
+  testthat::expect_false(
+    any(stringr::str_detect(raw_data$Opmerkingen, " na "))
+  )
+  testthat::expect_false(
+    any(stringr::str_detect(raw_data$Opmerkingen_admin, " de "))
+  )
+  testthat::expect_false(
+    any(stringr::str_detect(raw_data$Opmerkingen_admin, " en "))
+  )
+  testthat::expect_false(
+    any(stringr::str_detect(raw_data$Opmerkingen_admin, " op "))
+  )
+  testthat::expect_false(
+    any(stringr::str_detect(raw_data$Opmerkingen_admin, " na "))
+  )
 })
 
 testthat::test_that("raw_data.csv has the expected columns", {
@@ -26,6 +60,8 @@ testthat::test_that("raw_data.csv has the expected columns", {
       "Waarneming",
       "Actie",
       "Materiaal_Vast",
+      "Opmerkingen_admin",
+      "Opmerkingen",
       "Melder_Naam",
       "Melder_Klant",
       "Planning_Datum",
