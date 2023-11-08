@@ -2,8 +2,15 @@ Package: valid.package.name.goes.here
 Title: What the Package Does (One Line, Title Case)
 Version: 0.0.0.9000
 Authors@R: 
-    person("Pieter", "Huybrechts", , "pieter.huybrechts@inbo.be", role = c("aut", "cre"),
-           comment = c(ORCID = "0000-0002-6658-6062"))
+    person("Pieter", "Huybrechts", , "pieter.huybrechts@inbo.be",
+            role = c("aut", "cre"),
+            comment = c(ORCID = "0000-0002-6658-6062")),
+    person("Damiano", "Oldoni", email = "damiano.oldoni@inbo.be",
+            role = c("aut"),
+            comment = c(ORCID = "0000-0003-3445-7562")),
+    person("Lien", "Reyserhove", email = "lien.reyserhove@inbo.be",
+            role = c("aut"),
+            comment = c(ORCID = "0000-0001-7484-9267"))
 Description: What the package does (one paragraph).
 License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
     license
