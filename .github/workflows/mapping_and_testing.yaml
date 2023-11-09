@@ -46,9 +46,10 @@ jobs:
           sudo apt install libudunits2-dev
 
       - name: Install R packages
-        run: |
-          source("src/install_packages.R")
-        shell: Rscript {0}
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          cache: true
+          needs: check
 
       - name: Mapping to DwC
         run: |

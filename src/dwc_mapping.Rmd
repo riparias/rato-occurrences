@@ -419,6 +419,7 @@ input_data %<>%
     soort == "Rivierkreeft" & 
       (str_detect(waarneming, "Rode Amerikaanse rivierkreeft") | 
          str_detect(opmerkingen, "Amerikaanse")) ~ 2227300, 
+    soort == "Mantsjoerese wilde rijst" ~ 10919373,
     TRUE ~ gbif_code
   )
 )
