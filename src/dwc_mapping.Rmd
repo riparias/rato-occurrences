@@ -181,7 +181,8 @@ input_data <-
         ~ "present",
       
       waarneming_type == "Geen haard vastgesteld" |
-      waarneming_type == "Niet vastgesteld" 
+      waarneming_type == "Niet vastgesteld" |
+      waarneming_type == "Andere soort dan AH"
         ~ "absent",
       
       waarneming_type == "Waarneming onzeker" ~ "doubtful",
