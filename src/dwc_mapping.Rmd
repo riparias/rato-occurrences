@@ -161,7 +161,13 @@ input_data <-
     mutate(organism_quantity_type = case_when(
       waarneming_type == "Vastgesteld (in m²)" ~ "square meter(s)",
       waarneming_type == "Vastgesteld (aantal)" ~ "individual(s)",
-      waarneming_type == "Secundair nest vastgesteld" ~ "nest",
+      waarneming_type == "Secundair nest vastgesteld" |
+        waarneming_type == "Secundair nest" |
+        waarneming_type == "Embryonest vastgesteld" |
+        waarneming_type == "Nest vastgesteld" |
+        waarneming_type == "Primair nest" |
+        waarneming_type == "Primair nest vastgesteld"
+      ~ "nest",
       TRUE ~ ""
     ))
 ```
