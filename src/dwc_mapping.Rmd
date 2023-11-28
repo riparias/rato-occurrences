@@ -177,12 +177,21 @@ input_data <-
       waarneming_type == "Vastgesteld" |
       waarneming_type == "Vastgesteld (in m²)" |
       waarneming_type == "Vastgesteld (aantal)" |
-      waarneming_type == "Secundair nest vastgesteld"
+      waarneming_type == "Secundair nest vastgesteld" |
+      waarneming_type == "Secundair nest" |
+      waarneming_type == "Beverdam vastgesteld (aantal)" |
+      waarneming_type == "Primair nest" |
+      waarneming_type == "Primair nest vastgesteld" |
+      waarneming_type == "Embryonest vastgesteld"
+      
         ~ "present",
       
       waarneming_type == "Geen haard vastgesteld" |
       waarneming_type == "Niet vastgesteld" |
-      waarneming_type == "Andere soort dan AH"
+      waarneming_type == "Andere soort dan AH" |
+      waarneming_type == "Geen waarneming gedaan" |
+      waarneming_type == "Geen Aziatische hoornaar" |
+      waarneming_type == "Geen nest vastgesteld"
         ~ "absent",
       
       waarneming_type == "Waarneming onzeker" ~ "doubtful",
