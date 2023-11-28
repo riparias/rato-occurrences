@@ -27,7 +27,7 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = TRUE)
 
 Load libraries:
 
-```{r message = FALSE}
+```{r load libraries, message = FALSE}
 library(dplyr)          # To do data wrangling
 library(tidyr)          # To create tidy data
 library(readr)          # To read data
@@ -47,7 +47,7 @@ library(sf)             # To convert coordinate systems
 
 Create a data frame `input_data` from the source data:
 
-```{r}
+```{r read raw data}
 raw_data <- readr::read_csv(
   here::here("data", "raw", "rato_data.csv")
 ) 
@@ -55,7 +55,7 @@ raw_data <- readr::read_csv(
 
 Rename `raw_data` to `input_data` so we can keep original values
 
-```{r}
+```{r create input_data}
 input_data <- raw_data
 ```
 
@@ -65,7 +65,7 @@ input_data <- raw_data
 
 Clean data somewhat:
 
-```{r}
+```{r clean names and remove empty rows}
 input_data <- 
   input_data %>% 
     remove_empty("rows") %>% 
@@ -76,19 +76,21 @@ input_data <-
 
 Check whether `object_id` is unique (value should be `0`)
 
-```{r}
-anyDuplicated(input_data$objectid)
+```{r check for duplicate object ids}
+assertthat::assert_that(anyDuplicated(input_data$objectid) == 0,
+                        msg = "OBJECTID should never be duplicated")
+
 ```
 
 Remove all rows for `Domein` = `Werken`
 
-```{r}
+```{r remove Werken}
 input_data %<>% filter(domein != "Werken")
 ```
 
 ## Define eventID and occurrenceID
 
-```{r}
+```{r init event_id and occurrence_id}
 input_data <- 
   input_data %>% 
     mutate(event_id = dossier_id) %>% 
@@ -100,7 +102,7 @@ input_data <-
 
 The field `waarnemingen` is used to map `organismQuantity`, `organismQuantityType` and `occurrenceStatus`. This fields need to be cleaned before mapping.
 
-```{r}
+```{r check contents of waarneming}
 input_data %>% 
   group_by(waarneming) %>% 
   summarise(records = n()) %>% 
@@ -109,14 +111,14 @@ input_data %>%
 
 First, we need to clean `Haard vastgesteld = 0; Waarneming onzeker = 1;`. This should be `Waarneming onzeker = 1;` (error in database):
 
-```{r}
+```{r recode wrong values for waarneming}
 input_data %<>% mutate(waarneming = recode(waarneming,
   "Haard vastgesteld = 0; Waarneming onzeker = 1;" = "Waarneming onzeker = 1;"))
 ```
 
 Remove occurrences containing multiple type - value pairs information in column `waarneming` (patch until [#23](https://github.com/riparias/rato-occurrences/issues/23) is solved):
 
-```{r}
+```{r remove records with multiple values for waarneming}
 input_data %<>%
   filter(is.na(.data$waarneming) | 
            !str_detect(.data$waarneming, pattern = "; "))
@@ -124,7 +126,7 @@ input_data %<>%
 
 Split into different columns: `waarneming_type` and `waarneming_kwantiteit`:
 
-```{r}
+```{r split into waarneming_type and waarneming_kwantiteit}
 input_data <- 
   input_data %>% 
 
@@ -143,7 +145,7 @@ input_data <-
 
 Map `organism_quantity`:
 
-```{r}
+```{r map organism_quantity}
 input_data %<>% 
   mutate(organism_quantity = case_when(
     waarneming_type == "Vastgesteld (in m²)" |
@@ -155,7 +157,7 @@ input_data %<>%
 
 Map `organism_quantity_type`:
 
-```{r}
+```{r map organism_quantity_type}
 input_data <-
   input_data %>% 
     mutate(organism_quantity_type = case_when(
@@ -168,7 +170,7 @@ input_data <-
 
 Map `occurrence_status`:
 
-```{r}
+```{r map occurrence_status}
 input_data <-
   input_data %>%
     mutate(occurrence_status = case_when(
@@ -177,11 +179,21 @@ input_data <-
       waarneming_type == "Vastgesteld" |
       waarneming_type == "Vastgesteld (in m²)" |
       waarneming_type == "Vastgesteld (aantal)" |
-      waarneming_type == "Secundair nest vastgesteld"
+      waarneming_type == "Secundair nest vastgesteld" |
+      waarneming_type == "Secundair nest" |
+      waarneming_type == "Beverdam vastgesteld (aantal)" |
+      waarneming_type == "Primair nest" |
+      waarneming_type == "Primair nest vastgesteld" |
+      waarneming_type == "Embryonest vastgesteld"
+      
         ~ "present",
       
       waarneming_type == "Geen haard vastgesteld" |
-      waarneming_type == "Niet vastgesteld" 
+      waarneming_type == "Niet vastgesteld" |
+      waarneming_type == "Andere soort dan AH" |
+      waarneming_type == "Geen waarneming gedaan" |
+      waarneming_type == "Geen Aziatische hoornaar" |
+      waarneming_type == "Geen nest vastgesteld"
         ~ "absent",
       
       waarneming_type == "Waarneming onzeker" ~ "doubtful",
@@ -192,7 +204,7 @@ input_data <-
 
 Screen mapping:
 
-```{r}
+```{r check the current mapping}
 input_data %>% 
   group_by(waarneming, organism_quantity, organism_quantity_type, occurrence_status) %>% 
   summarize(records = n()) 
@@ -203,7 +215,7 @@ Some records have information regarding occurrenceStatus in the "opmerkingen" fi
 
 When `Dossier_Status` is `Opvolging`, old field values get copied. So even if "Waarneming" or "Actie" lead to a presence record, the Opmerkingen could still indicate a absence record. 
 
-```{r}
+```{r map absences based on opmerkingen}
 input_data <-
   input_data %>%
   mutate(
@@ -227,7 +239,7 @@ input_data <-
 
 Information from `materiaal_vast` can be used for `samplingProtocol`
 
-```{r}
+```{r check values for materiaal_vast}
 input_data %>% 
   group_by(materiaal_vast) %>% 
   summarise(records = n()) %>% 
@@ -236,7 +248,7 @@ input_data %>%
 
 First split on ";" and separate on "="
 
-```{r}
+```{r split and seperate materiaal_vast on seperators}
 sampling_protocol <-
   input_data %>% 
     select(occurrence_id, materiaal_vast) %>% 
@@ -264,7 +276,7 @@ sampling_protocol <-
 
 Separate on " = " and split in different columns:
 
-```{r}
+```{r split materiaal_vast into materiaal and kwantiteit}
 sampling_protocol %<>% 
     separate(
       col = materiaal_vast,
@@ -274,21 +286,21 @@ sampling_protocol %<>%
 
 remove "(aantal)" for easier mapping:
 
-```{r}
+```{r remove aantal string from materiaal}
 sampling_protocol %<>% 
    mutate(materiaal = str_remove(materiaal,"\\s\\(aantal\\)")) 
 ```
 
 remove all rows for which \`kwantiteit = NA
 
-```{r}
+```{r remove rows without a kwantiteit}
 sampling_protocol %<>% 
   filter(!is.na(kwantiteit))
 ```
 
 Resulting materials:
 
-```{r}
+```{r check resulting materials}
 sampling_protocol %>% 
   select(materiaal) %>% 
   group_by_all() %>% 
@@ -297,7 +309,7 @@ sampling_protocol %>%
 
 Translate to English (generate `protocol`):
 
-```{r}
+```{r map materiaal to protocol via LUT}
 sampling_protocol %<>% 
   mutate(protocol = recode(materiaal,
     "Andere" = "other",
@@ -315,7 +327,7 @@ sampling_protocol %<>%
 
 Add `effort` to the dataset. This is the sampling effort and is based on the values in `kwantiteit`:
 
-```{r}
+```{r create effort}
 sampling_protocol %<>% 
   mutate(effort = case_when(
     kwantiteit == "0" ~ "",
@@ -324,7 +336,7 @@ sampling_protocol %<>%
 
 Combine sampling efforts and methods per `occurrence_id`
 
-```{r}
+```{r combine sampling effort with methods}
 sampling_protocol <-
   sampling_protocol %>%
     group_by(occurrence_id) %>%
@@ -334,7 +346,7 @@ sampling_protocol <-
 
 Now, the field `sampling_effort` contains some unwanted, repeated hashes. With this code, we remove them:
 
-```{r}
+```{r remove repeated pipes from sampling_effort}
 sampling_protocol <- 
   sampling_protocol %>%
   
@@ -360,7 +372,7 @@ sampling_protocol <-
 
 Merge `sampling_protocol` with `input_data`:
 
-```{r}
+```{r merge sampling_protocol into input_data}
 input_data %<>% left_join(
   y = sampling_protocol,
   by = "occurrence_id")
@@ -370,18 +382,14 @@ input_data %<>% left_join(
 
 Coordinates in `x` and `y` are given in the Belgian Lambert system, they should be transformed to World Geodetic System 84 coordinate system
 
-```{r}
+```{r transform to WGS84}
 input_data_sf <- 
   input_data %>%
      st_as_sf(coords = c("x", "y"), crs = 31370) %>%
      st_transform(crs = 4326) 
-```
 
-```{r}
 x_y <- st_coordinates(input_data_sf)
-```
 
-```{r}
 input_data <- 
   input_data %>% bind_cols(x_y) %>% 
     rename(decimal_latitude = Y) %>% 
@@ -394,7 +402,7 @@ Extract scientific names from GBIF based on `gbif_code`.
 
 First: correct some codes:
 
-```{r}
+```{r overwrite certain gbif_codes with corrections}
 input_data %<>%
   mutate(gbif_code = case_when(
     soort == "Waterteunisbloem" ~ 5421039,
@@ -409,11 +417,11 @@ input_data %<>%
 
 Second: extract all unique gbif_codes from `input_data`.
 
-```{r}
+```{r pull unique gbif_codes}
 gbif_codes <- input_data %>% select(gbif_code) %>% distinct()
 ```
 
-```{r}
+```{r query GBIF for scientific names}
 scientific_names <- 
   map_dfr(gbif_codes$gbif_code, function(x) {
   if (!is.na(x)) {
@@ -425,7 +433,7 @@ scientific_names <-
 
 Add scientific names to `input_data`
 
-```{r}
+```{r add scientific names to input_data}
 input_data <- 
   input_data %>% left_join(
     scientific_names,
@@ -434,7 +442,7 @@ input_data <-
 
 Clean `canonical_name` and `rank`:
 
-```{r}
+```{r clean canonical_name and rank, manually correct canonicalName}
 input_data <-
   input_data %>% 
     mutate(canonicalName_clean = case_when(
@@ -451,7 +459,7 @@ input_data <-
 
 Clean `rank`:
 
-```{r}
+```{r clean rank}
 input_data <- input_data %>% 
     mutate(rank_clean = case_when(
       rank == "KINGDOM" & is.na(canonicalName_clean) ~ NA_character_,
@@ -465,7 +473,7 @@ input_data <- input_data %>%
 
 Create `kingdom` from `domein`:
 
-```{r}
+```{r create kingdom from domein}
 input_data <- 
   input_data %>% 
     mutate(kingdom = case_when(
@@ -477,21 +485,21 @@ input_data <-
 
 Some occurrences cannot be linked (even manually) to a taxon, i.e. `canonicalName_clean` = `incertae sedis` or `NA`:
 
-```{r empty_scientificName}
+```{r check for records without taxa}
 input_data %>%
   filter(is.na(canonicalName_clean) | canonicalName_clean == "incertae sedis")
 ```
 
 We remove them:
 
-```{r remove_empty_scn}
+```{r remove records without an identification}
 input_data %<>%
   filter(!is.na(canonicalName_clean) & canonicalName_clean != "incertae sedis")
 ```
 
 # Darwin Core mapping
 
-```{r}
+```{r map to darwinCore}
 dwc_data <- input_data
 dwc_data %<>% transmute(
   type = "Event",
@@ -529,6 +537,6 @@ dwc_data %<>% transmute(
 
 Save to CSV:
 
-```{r}
+```{r write out}
 write_csv(dwc_data, here("data", "processed", "occurrence.csv"), na = "")
 ```
