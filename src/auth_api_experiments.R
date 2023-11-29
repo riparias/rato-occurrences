@@ -36,15 +36,6 @@ get_token <- function(username = "RATO_INBO", password = askpass::askpass()) {
 }
 
 # get a list of all object id's -------------------------------------------
-# "query?where=1%3D1&returnIdsOnly=true&f=pjson&token={TOKEN}"
-# request("https://gis.oost-vlaanderen.be/server/rest/services/RATO/RATO_Private_Data/MapServer/0/query?where=1%3D1") %>%
-#   req_url_query(
-#     returnIdsOnly = "true",
-#     f = "pjson",
-#     token = get_token()
-#   ) %>%
-#   req_perform() %>%
-#   resp_body_json(check_type = FALSE)
 
 get_all_object_ids <- function(token = get_token()) {
   object_ids_response <-
