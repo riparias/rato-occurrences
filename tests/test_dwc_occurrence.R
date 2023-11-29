@@ -96,7 +96,7 @@ testthat::test_that(
         dwc_occurrence,
         !is.na(organismQuantityType) & is.na(organismQuantity)
       )),
-      0
+      0L
     )
   }
 )
