@@ -13,6 +13,9 @@ library(httr2)
 # get an access token -----------------------------------------------------
 
 get_token <- function(username = "RATO_INBO", password = askpass::askpass()) {
+  assertthat::assert_that(assertthat::is.string(username))
+  assertthat::assert_that(assertthat::is.string(password))
+
   token_request <-
     request("https://gis.oost-vlaanderen.be/portal/sharing/rest/generateToken") %>%
     req_body_form(
