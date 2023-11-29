@@ -255,10 +255,12 @@ input_data <-
 test_objects <-
   filter(
     input_data,
-    stringr::str_detect(opmerkingen, "\\btest\\b") |
-      stringr::str_detect(opmerkingen, "\\bTEST\\b") |
-      stringr::str_detect(opmerkingen_admin, "\\btest\\b") |
-      stringr::str_detect(opmerkingen_admin, "\\bTEST\\b")
+    stringr::str_detect(opmerkingen,
+                        stringr::regex("\\btest\\b",
+                                       ignore_case = TRUE)) |
+      stringr::str_detect(opmerkingen_admin,
+                          stringr::regex("\\btest\\b",
+                                         ignore_case = TRUE))
   ) %>%
   pull(objectid)
 # removing these records from the input dataset
