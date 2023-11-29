@@ -87,6 +87,21 @@ testthat::test_that(
   })
 
 testthat::test_that(
+  "an organsimQuantityType must have a corresponding organsimQuantity",
+  {
+    # there should be no cases where there is an organismQuantityType and no
+    # organismQuantity
+    testthat::expect_identical(
+      nrow(dplyr::filter(
+        dwc_occurrence,
+        !is.na(organismQuantityType) & is.na(organismQuantity)
+      )),
+      0L
+    )
+  }
+)
+
+testthat::test_that(
   "organismQuantityType is one of the predefined values if not NA", {
     values <- c("individual(s)", "square meter(s)", "nest")
     organismQuantityType_values <-
