@@ -21,7 +21,7 @@ get_token <- function(username = "RATO_INBO", password = askpass::askpass()) {
     req_body_form(
       username = username,
       password = password,
-      client = "referer",
+      client = "referer", #MUST USE CLIENT referer, otherwise you'll get a token but it will not work!
       referer = "https://gis.oost-vlaanderen.be",
       expiration = 5,
       f = "json"
@@ -100,6 +100,7 @@ fetch_objects <- function(object_ids, token = get_token()) {
 # split up the ids in batches of 100 --------------------------------------
 object_ids_to_query <- get_all_object_ids()
 
+# we get an error if we query for more than 100 objects at a time
 raw_data <-
   split(object_ids_to_query, ceiling(seq_along(object_ids_to_query)/100)) %>%
   purrr::map_dfr(fetch_objects)
