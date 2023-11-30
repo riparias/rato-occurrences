@@ -12,15 +12,19 @@ library(httr2)
 
 # get an access token -----------------------------------------------------
 
-get_token <- function(username = "RATO_INBO", password = askpass::askpass()) {
+get_token <- function(username = "RATO_INBO", password = Sys.getenv("ratopwd")) {
   assertthat::assert_that(assertthat::is.string(username))
   assertthat::assert_that(assertthat::is.string(password))
+
+  if(password == ""){
+    Sys.setenv(ratopwd = askpass::askpass())
+  }
 
   token_request <-
     request("https://gis.oost-vlaanderen.be/portal/sharing/rest/generateToken") %>%
     req_body_form(
       username = username,
-      password = password,
+      password = Sys.getenv("ratopwd"),
       client = "referer", #MUST USE CLIENT referer, otherwise you'll get a token but it will not work!
       referer = "https://gis.oost-vlaanderen.be",
       expiration = 5,
@@ -32,7 +36,20 @@ get_token <- function(username = "RATO_INBO", password = askpass::askpass()) {
     req_perform() %>%
     resp_body_json()
 
-  return(token_response$token)
+  if(
+    purrr::pluck(token_response, "error", "code", .default = FALSE)
+  ) {
+    Sys.setenv(ratopwd = "")
+    stop(
+      glue::glue(purrr::chuck(token_response, "error", "message"),
+                 purrr::map_chr(
+                   purrr::chuck(token_response, "error", "details"),
+                   ~.x)))
+  } else {
+    return(token_response$token)
+  }
+
+
 }
 
 # get a list of all object id's -------------------------------------------
