@@ -12,7 +12,9 @@ library(httr2)
 
 # get an access token -----------------------------------------------------
 
-get_token <- function(username = "RATO_INBO", password = Sys.getenv("ratopwd")) {
+get_token <- function(username = "RATO_INBO",
+                      password = Sys.getenv("ratopwd"),
+                      expires = 5) {
   assertthat::assert_that(assertthat::is.string(username))
   assertthat::assert_that(assertthat::is.string(password))
 
@@ -27,7 +29,7 @@ get_token <- function(username = "RATO_INBO", password = Sys.getenv("ratopwd")) 
       password = Sys.getenv("ratopwd"),
       client = "referer", #MUST USE CLIENT referer, otherwise you'll get a token but it will not work!
       referer = "https://gis.oost-vlaanderen.be",
-      expiration = 5,
+      expiration = expires,
       f = "json"
     )
 
