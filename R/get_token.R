@@ -4,6 +4,8 @@
 #' @param password ArcGIS Enterprise password
 #' @param expires In minutes, how long should the token remain valid?
 #'
+#' @return Character. An access token for future API calls.
+#'
 #' @export
 get_token <- function(username = "RATO_INBO",
                       password = Sys.getenv("ratopwd"),
