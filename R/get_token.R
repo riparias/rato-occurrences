@@ -21,7 +21,8 @@ get_token <- function(username = "RATO_INBO",
 
   # Build request for the API
   token_request <-
-    httr2::request("https://gis.oost-vlaanderen.be/portal/sharing/rest/generateToken") %>%
+    httr2::request("https://gis.oost-vlaanderen.be") %>%
+    httr2::req_url_path("portal", "sharing", "rest", "generateToken") %>%
     httr2::req_body_form(
       username = username,
       password = Sys.getenv("ratopwd"),

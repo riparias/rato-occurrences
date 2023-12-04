@@ -20,9 +20,12 @@ get_objects <- function(object_ids, token = get_token()) {
 
   # Build request for the API
   objects_request <-
-    httr2::request(
-      glue::glue("https://gis.oost-vlaanderen.be/server/rest/services/RATO/RATO_Private_Data/MapServer/0/query?where={object_id_query}")
-    ) %>%
+    httr2::request("https://gis.oost-vlaanderen.be/server/rest/services/") %>%
+    httr2::req_url_path_append("RATO",
+                               "RATO_Private_Data",
+                               "MapServer",
+                               "0",
+                               glue::glue("query?where={object_id_query}")) %>%
     httr2::req_url_query(
       outFields = "*",
       f = "json",
