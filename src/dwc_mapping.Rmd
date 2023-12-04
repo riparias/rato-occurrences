@@ -48,9 +48,18 @@ library(sf)             # To convert coordinate systems
 Create a data frame `input_data` from the source data:
 
 ```{r read raw data}
-raw_data <- readr::read_csv(
-  here::here("data", "raw", "rato_data.csv")
-) 
+# If the encryption key is not in the sys env (interactive use), ask for one
+if(Sys.getenv("encryption_key") == "" & interactive()){
+  Sys.setenv(encryption_key = 
+               askpass::askpass(prompt = "Please enter encryption key")
+  )
+}
+# read and decrypt the raw data
+raw_data <- 
+  here::here("data", "raw", "rato_data.rds") %>% 
+  readr::read_rds() %>% 
+  safer::decrypt_object(key = Sys.getenv("encryption_key"))
+
 ```
 
 Rename `raw_data` to `input_data` so we can keep original values

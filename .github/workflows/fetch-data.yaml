@@ -59,6 +59,7 @@ jobs:
       - name: Fetch data
         with:
           ratopwd: ${{ secrets.RATOPWD }}
+          encryption_key: ${{ secrets.OPMERKINGEN_SECRET_KEY }}
         run: |
           source("src/run_fetch_data.R")
         shell: Rscript {0}

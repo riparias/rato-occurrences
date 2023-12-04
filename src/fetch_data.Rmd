@@ -82,5 +82,25 @@ readr::write_csv(
   na = "",
   append = FALSE
 )
+
 ```
-  
+## Encrypt raw data
+```{r}
+
+# If the encryption key is not in the sys env (interactive use), ask for one
+if(Sys.getenv("encryption_key") == "" & interactive()){
+  Sys.setenv(encryption_key = 
+               askpass::askpass(prompt = "Please enter encryption key")
+  )
+}
+
+readr::write_rds(
+  safer::encrypt_object(
+    raw_occurrences,
+    key = Sys.getenv("encryption_key")
+  ),
+  file = here::here("data", "raw", "rato_data.rds"),
+  compress = "none"
+)
+
+```
