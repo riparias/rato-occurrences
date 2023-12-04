@@ -83,6 +83,7 @@ readr::write_csv(
   append = FALSE
 )
 
+
 ```
 ## Encrypt raw data
 ```{r}
@@ -94,13 +95,22 @@ if(Sys.getenv("encryption_key") == "" & interactive()){
   )
 }
 
-readr::write_rds(
-  safer::encrypt_object(
-    raw_occurrences,
-    key = Sys.getenv("encryption_key")
-  ),
-  file = here::here("data", "raw", "rato_data.rds"),
-  compress = "none"
+withr::with_file(
+  "rato_data_decrypted.csv",
+  {
+    readr::write_csv(
+      x = raw_occurrences,
+      file = "rato_data_decrypted.csv",
+      na = "",
+      append = FALSE
+    )
+    
+    safer::encrypt_file(
+      infile = "rato_data_decrypted.csv",
+      key = Sys.getenv("encryption_key"),
+      outfile = here::here("data", "raw", "rato_data")
+    )
+  }
 )
 
 ```
