@@ -2,6 +2,7 @@
 title: "Fetch data of RATO vzw"
 author:
 - Damiano Oldoni
+- Pieter Huybrechts
 date: "`r Sys.Date()`"
 output:
   html_document:
@@ -27,66 +28,61 @@ library(here)     # to work with paths
 library(readr)    # to read csv files
 ```
 
-# Fetch data from WFS
+Load helper functions: 
 
-WFS link:
+```{r load helper functions}
+devtools::load_all(here::here())
+```
+# Fetch data from the MapService
+The current setup doesn't support authentication on a WFS layer. So, as a workaround, we can send a number of queries to get the data out. 
 
-```{r link}
-wfs_rato <- "https://gis.oost-vlaanderen.be/server/rest/services/RATO/RATO_Public_Data/MapServer/WFSServer"
-wfs_rato <- "https://gis.oost-vlaanderen.be/server/services/RATO/RATO_Public_Data/MapServer/WFSServer"
+1) List all the object ids
+2) Query all fields for these object ids
+
+The query service recommends not requesting over 1000 objects in a single request. So we have to request the objects in batches and combine the responses.
+
+## Get a list of objects to fetch
+
+```{r}
+all_object_ids <- list_object_ids(token = get_token())
+message(glue::glue("Expecting {length(all_object_ids)} records"))
 ```
 
-Create WFS client:
+## Split the list of objects into batches
+We can't request all the objects at once
 
-```{r create_client}
-rato_client <- ows4R::WFSClient$new(wfs_rato, serviceVersion = "2.0.0")
+```{r}
+batch_size <- 100 # having some inconsistent results with higher batch sizes
+batched_object_ids <- 
+  split(all_object_ids, ceiling(seq_along(all_object_ids)/batch_size))
 ```
 
-Overview of the layers available:
+## Fetch the batches and combine the result
+```{r Fetch the records in batches}
+batched_responses <- batched_object_ids %>% 
+  purrr::map(get_objects, .progress = TRUE)
 
-```{r layers}
-layers <- rato_client$getFeatureTypes(pretty = TRUE)
-print(layers)
+raw_occurrences <- purrr::list_rbind(batched_responses)
 ```
 
-Request data from layer `Waarnemingen_Public:Invasieve_uitheemse_soorten`:
+### Check that we got the number of records we expect
 
-```{r request}
-url <- httr::parse_url(wfs_rato)
-url$query <- list(service = "wfs",
-                  request = "GetFeature",
-                  typename = "RATO_Public_Data",
-                  outputFormat = "CSV"
+```{r}
+assertthat::assert_that(
+  length(all_object_ids) == nrow(raw_occurrences)
 )
-request <- httr::build_url(url)
 ```
 
-Download requested data as csv and save them  as `rato_data.csv`:
+## Save raw occurrences (overwrite file)
 
-```{r download_data}
+```{r}
 file_path <- here::here("data", "raw", "rato_data.csv")
-httr::GET(url = request, write_disk(file_path, overwrite = TRUE))
-```
 
-## Remove column `GmlID`
-
-The column `GMlID` is not present in the database of RATO vzw: it is added by the WFS service as a progressive number with the layer name as prefix. Removing this column from the raw data would increase the effectiveness of the git file change history tool, e.g. in case new observations are added at a certain row in the file.
-
-```{r remove_GmlID}
-# read raw occurrences
-raw_occurrences <- readr::read_csv(
-  file = file_path,
-  na = "",
-  col_types = readr::cols(.default = readr::col_character())
-)
-
-# remove GmlId column
-raw_occurrences <- subset(raw_occurrences, select = -GmlId)
-
-# save raw occurrences (overwrite file)
 readr::write_csv(
   x = raw_occurrences,
   file = file_path,
   na = "",
+  append = FALSE
 )
 ```
+  
