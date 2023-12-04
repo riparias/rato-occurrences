@@ -105,6 +105,11 @@ withr::with_file(
       append = FALSE
     )
     
+    # safer can't overwrite a file
+    if(file.exists(here::here("data", "raw", "rato_data"))){
+      file.remove(here::here("data", "raw", "rato_data"))
+    }
+    
     safer::encrypt_file(
       infile = "rato_data_decrypted.csv",
       key = Sys.getenv("encryption_key"),
