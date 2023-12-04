@@ -245,6 +245,29 @@ input_data <-
     )
   )
 ```
+## Drop test records based on "opmerkingen" and "opmerkingen_admin"
+
+```{r drop test records}
+
+# getting the records that have the word test in their comment fields, using
+# word boundaries to avoid matching comments that just have test in the
+# streetname
+test_objects <-
+  filter(
+    input_data,
+    stringr::str_detect(opmerkingen,
+                        stringr::regex("\\btest\\b",
+                                       ignore_case = TRUE)) |
+      stringr::str_detect(opmerkingen_admin,
+                          stringr::regex("\\btest\\b",
+                                         ignore_case = TRUE))
+  ) %>%
+  pull(objectid)
+# removing these records from the input dataset
+input_data <- input_data %>% filter(!objectid %in% test_objects)
+
+```
+
 
 ## Extract information from "materiaal_vast"
 

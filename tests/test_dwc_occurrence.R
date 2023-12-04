@@ -213,3 +213,23 @@ testthat::test_that("taxonRank is always filled in and one of the list", {
     all(dwc_occurrence$taxonRank %in% taxon_ranks)
   )
 })
+
+testthat::test_that("known test objects are removed from output", {
+  testthat::expect_identical(
+    nrow(filter(dwc_occurrence, occurrenceID %in%
+                  c(
+                    "432883",
+                    "432884",
+                    "432887",
+                    "432896",
+                    "437303",
+                    "449283",
+                    "449284",
+                    "449285",
+                    "449317",
+                    "450596",
+                    "596279"
+                  ))),
+    0L
+  )
+})
