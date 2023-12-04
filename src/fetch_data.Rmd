@@ -88,14 +88,6 @@ raw_occurrences <-
 ```{r}
 file_path <- here::here("data", "raw", "rato_data.csv")
 
-readr::write_csv(
-  x = raw_occurrences,
-  file = file_path,
-  na = "",
-  append = FALSE
-)
-
-
 ```
 ## Encrypt raw data
 ```{r}
