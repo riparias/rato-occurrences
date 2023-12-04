@@ -55,10 +55,19 @@ if(Sys.getenv("encryption_key") == "" & interactive()){
   )
 }
 # read and decrypt the raw data
-raw_data <- 
-  here::here("data", "raw", "rato_data.rds") %>% 
-  readr::read_rds() %>% 
-  safer::decrypt_object(key = Sys.getenv("encryption_key"))
+
+withr::with_file(
+  "rato_data_decrypted.csv",
+  {
+    safer::decrypt_file(
+      here::here("data", "raw", "rato_data"),
+      key = Sys.getenv("encryption_key"),
+      outfile = "rato_data_decrypted.csv"
+    )
+    
+    raw_data <- readr::read_csv("rato_data_decrypted.csv")
+  }
+)
 
 ```
 
