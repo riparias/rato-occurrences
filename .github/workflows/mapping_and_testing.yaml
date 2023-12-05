@@ -52,6 +52,8 @@ jobs:
           needs: check
 
       - name: Mapping to DwC
+        env:
+          encryption_key: ${{ secrets.OPMERKINGEN_SECRET_KEY }}
         run: |
           source("src/run_dwc_mapping.R")
         shell: Rscript {0}
