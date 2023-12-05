@@ -57,7 +57,7 @@ jobs:
           needs: check
 
       - name: Fetch data
-        with:
+        env:
           ratopwd: ${{ secrets.RATOPWD }}
           encryption_key: ${{ secrets.OPMERKINGEN_SECRET_KEY }}
         run: |
