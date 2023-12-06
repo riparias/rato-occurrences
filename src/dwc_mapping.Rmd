@@ -59,6 +59,22 @@ Rename `raw_data` to `input_data` so we can keep original values
 input_data <- raw_data
 ```
 
+## Read old archive data 
+In November 2023, RATO removed data from 2021 and 2022 from the source. The 
+intention exists to restore this data by March 2024. In the meantime a local 
+archive of this raw data was stored in the repo and is used instead.
+```{r read archive data}
+input_data <- list.files(
+  here::here("data","raw"),
+  pattern = "20[0-9]{2}_archive_rato_data",
+  full.names = TRUE
+) %>% 
+  purrr::map(readr::read_csv, show_col_types = FALSE) %>% 
+  purrr::list_rbind() %>% 
+  dplyr::bind_rows(input_data)
+```
+
+
 # Process source data
 
 ## Tidy data
