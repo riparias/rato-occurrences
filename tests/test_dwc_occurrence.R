@@ -9,6 +9,11 @@ dwc_occurrence <-
   readr::read_csv(occs_path, guess_max = 10000, show_col_types = FALSE)
 
 # tests
+
+testthat::test_that("The occurrence output exists", {
+  testthat::expect_true(file.exists(occs_path))
+})
+
 testthat::test_that("Right columns in right order", {
   columns <- c(
     "type",
@@ -233,3 +238,13 @@ testthat::test_that("known test objects are removed from output", {
     0L
   )
 })
+
+testthat::test_that(
+  "There is at least one record for every year since the beginning of the data",{
+    testthat::expect_equal(
+      unique(lubridate::year(dwc_occurrence$eventDate)),
+      seq(2021, as.double(format(Sys.Date(), "%Y"))),
+      tolerance = 0 # so it will allow comparing doubles and integers
+    )
+  })
+
