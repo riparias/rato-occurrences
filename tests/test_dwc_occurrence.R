@@ -9,6 +9,11 @@ dwc_occurrence <-
   readr::read_csv(occs_path, guess_max = 10000, show_col_types = FALSE)
 
 # tests
+
+testthat::test_that("The occurrence output exists", {
+  testthat::expect_true(file.exists(occs_path))
+})
+
 testthat::test_that("Right columns in right order", {
   columns <- c(
     "type",
