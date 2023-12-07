@@ -27,7 +27,7 @@ write_encrypted_csv <- function(x,
   }
 
   # write out
-  withr::with_tempfilefile(
+  withr::with_tempfile(
     "decrypted",
     {
       readr::write_csv(
