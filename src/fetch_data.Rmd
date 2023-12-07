@@ -90,7 +90,7 @@ if(Sys.getenv("encryption_key") == "" & interactive()){
                askpass::askpass(prompt = "Please enter encryption key")
   )
 }
-
+# write to disk
 write_encrypted_csv(
   x = raw_occurrences,
   outfile = file_path,
