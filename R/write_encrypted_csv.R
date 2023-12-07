@@ -17,7 +17,7 @@ write_encrypted_csv <- function(x,
                                 ...) {
   # check inputs
   assertthat::assert_that(is.data.frame(x))
-  assertthat::assert_that(assertthat::is.writeable(file))
+  assertthat::assert_that(assertthat::is.writeable(dirname(outfile)))
   assertthat::assert_that(assertthat::is.string(key))
   assertthat::assert_that(key != "")
 
