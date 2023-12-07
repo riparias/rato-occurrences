@@ -57,6 +57,9 @@ jobs:
           needs: check
 
       - name: Fetch data
+        env:
+          ratopwd: ${{ secrets.RATOPWD }}
+          encryption_key: ${{ secrets.OPMERKINGEN_SECRET_KEY }}
         run: |
           source("src/run_fetch_data.R")
         shell: Rscript {0}
