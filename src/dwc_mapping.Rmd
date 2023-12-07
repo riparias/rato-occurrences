@@ -44,13 +44,31 @@ library(sf)             # To convert coordinate systems
 ```
 
 # Read source data
+Since late 2023 the raw data is stored encrypted based on a private key. If the decryption key is not in the system environment, ask for the key.
+
+```{r}
+if(Sys.getenv("encryption_key") == "" & interactive()){
+  Sys.setenv(encryption_key = 
+               askpass::askpass(prompt = "Please enter encryption key")
+  )
+}
+```
 
 Create a data frame `input_data` from the source data:
 
 ```{r read raw data}
-raw_data <- readr::read_csv(
-  here::here("data", "raw", "rato_data.csv")
-) 
+withr::with_file(
+  "rato_data_decrypted.csv",
+  {
+    safer::decrypt_file(
+      here::here("data", "raw", "rato_data"),
+      key = Sys.getenv("encryption_key"),
+      outfile = "rato_data_decrypted.csv"
+    )
+    
+    raw_data <- readr::read_csv("rato_data_decrypted.csv")
+  }
+)
 ```
 
 Rename `raw_data` to `input_data` so we can keep original values
