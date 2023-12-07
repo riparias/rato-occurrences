@@ -70,8 +70,7 @@ request <- httr::build_url(url)
 Download requested data as csv and save them  as `rato_data.csv`:
 
 ```{r download_data}
-file_path <- here::here("data", "raw", "rato_data.csv")
-httr::GET(url = request, write_disk(file_path, overwrite = TRUE))
+raw_occurrences <- httr::content(httr::GET(url = request))
 ```
 
 ## Remove column `GmlID`
