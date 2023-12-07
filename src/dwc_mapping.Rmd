@@ -41,6 +41,7 @@ library(janitor)        # To clean input data
 library(digest)         # To generate hashes
 library(rgbif)
 library(sf)             # To convert coordinate systems
+devtools::load_all()    # Load included functions
 ```
 
 # Read source data
