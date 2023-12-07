@@ -9,6 +9,7 @@
 #' @inheritParams safer::decrypt_file
 #'
 #' @return A [tibble()]. As per [readr::read_csv()]
+#' @export
 #'
 read_encrypted_csv <- function(file, key = Sys.getenv("encryption_key"), ...) {
   withr::with_tempfile(
