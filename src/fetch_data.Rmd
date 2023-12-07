@@ -78,20 +78,23 @@ raw_occurrences <- httr::content(httr::GET(url = request))
 The column `GMlID` is not present in the database of RATO vzw: it is added by the WFS service as a progressive number with the layer name as prefix. Removing this column from the raw data would increase the effectiveness of the git file change history tool, e.g. in case new observations are added at a certain row in the file.
 
 ```{r remove_GmlID}
-# read raw occurrences
-raw_occurrences <- readr::read_csv(
-  file = file_path,
-  na = "",
-  col_types = readr::cols(.default = readr::col_character())
-)
-
 # remove GmlId column
 raw_occurrences <- subset(raw_occurrences, select = -GmlId)
+```
+## save raw occurrences (overwrite file)
+```{r write encrypted raw data to disk}
+file_path <- here::here("data", "raw", "rato_data")
+# If the encryption key is not in the sys env (interactive use), ask for one
+if(Sys.getenv("encryption_key") == "" & interactive()){
+  Sys.setenv(encryption_key = 
+               askpass::askpass(prompt = "Please enter encryption key")
+  )
+}
 
-# save raw occurrences (overwrite file)
-readr::write_csv(
+write_encrypted_csv(
   x = raw_occurrences,
-  file = file_path,
+  outfile = file_path,
   na = "",
+  overwrite = TRUE
 )
 ```
