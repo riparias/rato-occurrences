@@ -44,13 +44,31 @@ library(sf)             # To convert coordinate systems
 ```
 
 # Read source data
+Since late 2023 the raw data is stored encrypted based on a private key. If the decryption key is not in the system environment, ask for the key.
+
+```{r}
+if(Sys.getenv("encryption_key") == "" & interactive()){
+  Sys.setenv(encryption_key = 
+               askpass::askpass(prompt = "Please enter encryption key")
+  )
+}
+```
 
 Create a data frame `input_data` from the source data:
 
 ```{r read raw data}
-raw_data <- readr::read_csv(
-  here::here("data", "raw", "rato_data.csv")
-) 
+withr::with_file(
+  "rato_data_decrypted.csv",
+  {
+    safer::decrypt_file(
+      here::here("data", "raw", "rato_data"),
+      key = Sys.getenv("encryption_key"),
+      outfile = "rato_data_decrypted.csv"
+    )
+    
+    raw_data <- readr::read_csv("rato_data_decrypted.csv")
+  }
+)
 ```
 
 Rename `raw_data` to `input_data` so we can keep original values
@@ -58,6 +76,22 @@ Rename `raw_data` to `input_data` so we can keep original values
 ```{r create input_data}
 input_data <- raw_data
 ```
+
+## Read old archive data 
+In November 2023, RATO removed data from 2021 and 2022 from the source. The 
+intention exists to restore this data by March 2024. In the meantime a local 
+archive of this raw data was stored in the repo and is used instead.
+```{r read archive data}
+input_data <- list.files(
+  here::here("data","raw"),
+  pattern = "20[0-9]{2}_archive_rato_data",
+  full.names = TRUE
+) %>% 
+  purrr::map(readr::read_csv, show_col_types = FALSE) %>% 
+  purrr::list_rbind() %>% 
+  dplyr::bind_rows(input_data)
+```
+
 
 # Process source data
 

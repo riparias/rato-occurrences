@@ -32,8 +32,10 @@ Imports:
     purrr,
     readr,
     rgbif,
+    safer,
     sf,
     stringr,
     testthat,
     tidylog,
-    tidyr
+    tidyr,
+    withr
