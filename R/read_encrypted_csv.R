@@ -12,17 +12,18 @@
 #' @export
 #'
 read_encrypted_csv <- function(file, key = Sys.getenv("encryption_key"), ...) {
-  withr::with_tempfile(
-    "decrypted",
-    {
-      safer::decrypt_file(
-        file,
-        key = key,
-        outfile = decrypted
-      )
-
-      decrypted_tibble <- readr::read_csv(decrypted, ...)
-    }
-  )
+  decrypted_tibble <-
+    withr::with_tempfile(
+      "decrypted",
+      {
+        safer::decrypt_file(
+          file,
+          key = key,
+          outfile = decrypted
+        )
+        # return the decrypted csv
+        readr::read_csv(decrypted, ...)
+      }
+    )
   return(decrypted_tibble)
 }
