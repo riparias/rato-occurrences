@@ -26,7 +26,13 @@ library(ows4R)    # interface for OGC webservices
 library(here)     # to work with paths
 library(readr)    # to read csv files
 ```
+Load helper functions: 
 
+
+WFS link:
+```{r load helper functions}
+devtools::load_all(here::here())
+```
 # Fetch data from WFS
 
 WFS link:
