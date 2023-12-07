@@ -49,8 +49,15 @@ devtools::load_all()    # Load included functions
 Create a data frame `input_data` from the source data:
 
 ```{r read raw data}
-raw_data <- readr::read_csv(
-  here::here("data", "raw", "rato_data.csv")
+# If the encryption key is not in the sys env (interactive use), ask for one
+if(Sys.getenv("encryption_key") == "" & interactive()){
+  Sys.setenv(encryption_key = 
+               askpass::askpass(prompt = "Please enter encryption key")
+  )
+}
+
+raw_data <- read_encrypted_csv(
+  here::here("data", "raw", "rato_data")
 ) 
 ```
 
