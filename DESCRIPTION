@@ -40,3 +40,4 @@ Imports:
     tidylog,
     tidyr,
     withr
+Config/testthat/edition: 3
