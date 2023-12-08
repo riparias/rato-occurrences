@@ -76,3 +76,30 @@ test_that("write_encrypted_csv() can write a file that can be decrypted", {
     }
   )
 })
+
+test_that("write_encrypted_csv output files can not be read by readr", {
+  testing_key <- "testing key for testing"
+  withr::local_envvar(.new = list("encryption_key" = testing_key,
+                                  action = "replace"))
+  withr::with_tempfile(
+    c("encrypted_csv","decrypted_csv"),
+    {
+      object_to_encrypt <- dplyr::tibble(month.name, month.abb)
+      write_encrypted_csv(
+        object_to_encrypt,
+        outfile = encrypted_csv
+      )
+
+      safer::decrypt_file(
+        encrypted_csv,
+        key = testing_key,
+        outfile = decrypted_csv
+      )
+
+      expect_identical(
+        readr::read_csv(decrypted_csv, show_col_types = FALSE),
+        object_to_encrypt
+      )
+    }
+  )
+})
