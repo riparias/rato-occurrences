@@ -32,3 +32,18 @@ test_that("write_encrypted_csv() fails on bad inputs", {
     fixed = TRUE
   )
 })
+
+test_that("write_encrypted_csv() can write an encrypted csv", {
+  withr::with_tempfile(
+    "encrypted_csv",
+    {
+      write_encrypted_csv(
+        dplyr::tibble(a = seq(1,50), b = seq(50,1)),
+        outfile = encrypted_csv,
+        key = "super public key"
+      )
+      expect_true(file.exists(encrypted_csv))
+    }
+  )
+})
+
