@@ -4,7 +4,13 @@
 \alias{write_encrypted_csv}
 \title{Write an encrypted csv}
 \usage{
-write_encrypted_csv(x, outfile, key = Sys.getenv("encryption_key"), ...)
+write_encrypted_csv(
+  x,
+  outfile,
+  key = Sys.getenv("encryption_key"),
+  overwrite = TRUE,
+  ...
+)
 }
 \arguments{
 \item{x}{A data frame or tibble to write to disk in an encrypted binary file.}
@@ -15,6 +21,8 @@ write_encrypted_csv(x, outfile, key = Sys.getenv("encryption_key"), ...)
 'key' can be either a string (Default is 'pass') or a raw object. For
 asymmetric decryption, both 'key' (private key of the decrypter) and 'pkey'
 (public key of the encrypter) should be raw objects.}
+
+\item{overwrite}{TRUE by default: the outfile will be removed before attempting to write.}
 
 \item{...}{passed on to \code{\link[readr:read_delim]{readr::read_csv()}}}
 }
