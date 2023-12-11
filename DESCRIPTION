@@ -1,7 +1,7 @@
 Package: rato.ccurrences
 Title: Darwin Core Mapping RATO data
 Version: 0.0.0.9000
-Authors@R: 
+Authors@R: c(
     person("Pieter", "Huybrechts", , "pieter.huybrechts@inbo.be",
             role = c("aut", "cre"),
             comment = c(ORCID = "0000-0002-6658-6062")),
@@ -14,6 +14,7 @@ Authors@R:
     person("Peter", "Desmet", email = "peter.desmet@inbo.be",
             role = "ctb",
             comment =  c(ORCID = "0000-0002-8442-8025"))
+            )
 Description:
   This repository contains the functionality to standardize the occurrences data of RATO vzw to a Darwin Core Archive that can be harvested by a GBIF IPT.
 License: MIT + file LICENSE
