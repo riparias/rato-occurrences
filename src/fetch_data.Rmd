@@ -82,44 +82,8 @@ raw_occurrences <-
   ))
 ```
 
-
-## Save raw occurrences (overwrite file)
+## Create object for mapping to use
 
 ```{r}
-file_path <- here::here("data", "raw", "rato_data.csv")
-
-```
-## Encrypt raw data
-```{r}
-
-# If the encryption key is not in the sys env (interactive use), ask for one
-if(Sys.getenv("encryption_key") == "" & interactive()){
-  Sys.setenv(encryption_key = 
-               askpass::askpass(prompt = "Please enter encryption key")
-  )
-}
-
-withr::with_file(
-  "rato_data_decrypted.csv",
-  {
-    readr::write_csv(
-      x = raw_occurrences,
-      file = "rato_data_decrypted.csv",
-      na = "",
-      append = FALSE
-    )
-    
-    # safer can't overwrite a file
-    if(file.exists(here::here("data", "raw", "rato_data"))){
-      file.remove(here::here("data", "raw", "rato_data"))
-    }
-    
-    safer::encrypt_file(
-      infile = "rato_data_decrypted.csv",
-      key = Sys.getenv("encryption_key"),
-      outfile = here::here("data", "raw", "rato_data")
-    )
-  }
-)
-
+raw_data <- raw_occurrences
 ```
