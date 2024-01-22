@@ -58,7 +58,7 @@ batched_object_ids <-
 ## Fetch the batches and combine the result
 ```{r Fetch the records in batches}
 batched_responses <- batched_object_ids %>% 
-  purrr::map(get_objects, .progress = TRUE)
+  purrr::map(get_objects, .progress = TRUE, token = get_token())
 
 raw_occurrences <- purrr::list_rbind(batched_responses)
 ```
