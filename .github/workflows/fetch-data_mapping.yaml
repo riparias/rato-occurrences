@@ -56,15 +56,11 @@ jobs:
           cache: true
           needs: check
 
-      - name: Fetch data
+      - name: Fetch data and map to DwC
         env:
           ratopwd: ${{ secrets.RATOPWD }}
         run: |
           source("src/run_fetch_data.R")
-        shell: Rscript {0}
-
-      - name: Mapping to DwC
-        run: |
           source("src/run_dwc_mapping.R")
         shell: Rscript {0}
 
