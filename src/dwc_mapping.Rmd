@@ -53,7 +53,7 @@ Create a data frame `input_data` from the source data:
 
 
 # check if the raw_data object exists
-assertthat::assert_that(exists(raw_data))
+assertthat::assert_that(exists("raw_data"))
 
 ```
 
