@@ -48,26 +48,12 @@ library(sf)             # To convert coordinate systems
 Create a data frame `input_data` from the source data:
 
 ```{r read raw data}
-# If the encryption key is not in the sys env (interactive use), ask for one
-if(Sys.getenv("encryption_key") == "" & interactive()){
-  Sys.setenv(encryption_key = 
-               askpass::askpass(prompt = "Please enter encryption key")
-  )
-}
-# read and decrypt the raw data
 
-withr::with_file(
-  "rato_data_decrypted.csv",
-  {
-    safer::decrypt_file(
-      here::here("data", "raw", "rato_data"),
-      key = Sys.getenv("encryption_key"),
-      outfile = "rato_data_decrypted.csv"
-    )
-    
-    raw_data <- readr::read_csv("rato_data_decrypted.csv")
-  }
-)
+# raw data should be in memory from running fetch_data.R first
+
+
+# check if the raw_data object exists
+assertthat::assert_that(exists(raw_data))
 
 ```
 
