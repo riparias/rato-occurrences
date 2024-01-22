@@ -119,6 +119,13 @@ First, we need to clean `Haard vastgesteld = 0; Waarneming onzeker = 1;`. This s
 input_data %<>% mutate(waarneming = recode(waarneming,
   "Haard vastgesteld = 0; Waarneming onzeker = 1;" = "Waarneming onzeker = 1;"))
 ```
+Remove trailing whitespace from waarneming, so we can use `; ` as a way to detect multiple values for this field
+
+```{r remove trailing whitespace from waarneming}
+input_data <- 
+  input_data %>% 
+  mutate(waarneming = stringr::str_trim(waarneming))
+```
 
 Remove occurrences containing multiple type - value pairs information in column `waarneming` (patch until [#23](https://github.com/riparias/rato-occurrences/issues/23) is solved):
 
