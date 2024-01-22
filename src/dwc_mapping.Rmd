@@ -48,9 +48,13 @@ library(sf)             # To convert coordinate systems
 Create a data frame `input_data` from the source data:
 
 ```{r read raw data}
-raw_data <- readr::read_csv(
-  here::here("data", "raw", "rato_data.csv")
-) 
+
+# raw data should be in memory from running fetch_data.R first
+
+
+# check if the raw_data object exists
+assertthat::assert_that(exists("raw_data"))
+
 ```
 
 Rename `raw_data` to `input_data` so we can keep original values
