@@ -51,20 +51,6 @@ jobs:
           cache: true
           needs: check
 
-      - name: Mapping to DwC
-        env:
-          encryption_key: ${{ secrets.OPMERKINGEN_SECRET_KEY }}
-        run: |
-          source("src/run_dwc_mapping.R")
-        shell: Rscript {0}
-
-      - name: Commit and push changes
-        uses: devops-infra/action-commit-push@master
-        with:
-          github_token: ${{ secrets.WORKFLOWS }}
-          commit_prefix: "[AUTO]"
-          commit_message: "Mapping"
-
       - name: Run tests
         run: |
           source("tests/test_dwc_occurrence.R")

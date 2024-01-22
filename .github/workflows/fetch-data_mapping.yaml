@@ -59,9 +59,13 @@ jobs:
       - name: Fetch data
         env:
           ratopwd: ${{ secrets.RATOPWD }}
-          encryption_key: ${{ secrets.OPMERKINGEN_SECRET_KEY }}
         run: |
           source("src/run_fetch_data.R")
+        shell: Rscript {0}
+
+      - name: Mapping to DwC
+        run: |
+          source("src/run_dwc_mapping.R")
         shell: Rscript {0}
 
       - name: Commit and push changes
@@ -69,7 +73,7 @@ jobs:
         with:
           github_token: ${{ secrets.WORKFLOWS }}
           commit_prefix: "[AUTO]"
-          commit_message: "Fetch data"
+          commit_message: "Mapping"
           target_branch: automatic-update
           add_timestamp: true
 
