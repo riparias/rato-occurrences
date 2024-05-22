@@ -2,8 +2,9 @@
 title: "Darwin Core mapping"
 subtitle: "For: The (...) occurrences of "
 author:
-- author_1
-- author_2
+- Pieter Huybrechts
+- Damiano Oldoni
+- Lien Reyserhove
 date: "`r Sys.Date()`"
 output:
   html_document:
