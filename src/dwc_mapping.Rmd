@@ -77,14 +77,22 @@ input_data <-
     clean_names()
 ```
 
-`object_id` is the unique identifier for each occurrence. This will be the `occurrenceID`. This field should contain unique values only. `dossier_id` is the unique identifier for each sampling event. This will be the `eventID`
+`global_id` is used as an unique identifier for each occurrence. Up to may 2024 we used `object_id` instead, however, it turned out this identifier wasn't stable and was recalulated when the database was updated or restored from backup. We have been assured `global_id` (a GUID) will remain stable in the future. 
 
-Check whether `object_id` is unique (value should be `0`)
+This field should contain unique values only. and be mapped to the `occurrenceID`. `dossier_id` is the unique identifier for each sampling event. This will be the `eventID`
+
+Check whether `object_id` is unique (value should be `0`), this should remain the case even if we aren't using it anymore.
 
 ```{r check for duplicate object ids}
 assertthat::assert_that(anyDuplicated(input_data$objectid) == 0,
                         msg = "OBJECTID should never be duplicated")
 
+```
+Check whether `global_id` is unique.
+
+```{r check for duplicate global ids}
+assertthat::assert_that(anyDuplicated(input_data$global_id) == 0,
+                        msg = "Global ID should always be unique")
 ```
 
 Remove all rows for `Domein` = `Werken`
@@ -99,7 +107,7 @@ input_data %<>% filter(domein != "Werken")
 input_data <- 
   input_data %>% 
     mutate(event_id = dossier_id) %>% 
-    mutate(occurrence_id = objectid)
+    mutate(occurrence_id = global_id)
 
 ```
 
