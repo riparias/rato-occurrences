@@ -40,7 +40,6 @@ The repository structure is based on [Cookiecutter Data Science](http://drivenda
 │   └── install_packages.R : R script to install all needed packages
 |
 └── data
-│   ├── raw                : Fetched data
 │   └── processed          : Darwin Core output of mapping script GENERATED
 ```
 
