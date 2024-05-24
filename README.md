@@ -8,7 +8,7 @@ This repository contains the functionality to standardize the occurrences data o
 
 ## Workflow
 
-fetch data from WFS → save them as local [source data](data/raw) → Darwin Core [mapping script](src/dwc_mapping.Rmd) → generated [Darwin Core files](data/processed)
+fetch data from WFS → save them as local source data → Darwin Core [mapping script](src/dwc_mapping.Rmd) → generated [Darwin Core files](data/processed)
 
 
 ## Published dataset
