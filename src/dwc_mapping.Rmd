@@ -215,7 +215,8 @@ input_data <-
       waarneming_type == "Beverdam vastgesteld (aantal)" |
       waarneming_type == "Primair nest" |
       waarneming_type == "Primair nest vastgesteld" |
-      waarneming_type == "Embryonest vastgesteld"
+      waarneming_type == "Embryonest vastgesteld" |
+      waarneming_type == "Embryonest"
       
         ~ "present",
       
@@ -224,12 +225,14 @@ input_data <-
       waarneming_type == "Andere soort dan AH" |
       waarneming_type == "Geen waarneming gedaan" |
       waarneming_type == "Geen Aziatische hoornaar" |
-      waarneming_type == "Geen nest vastgesteld"
+      waarneming_type == "Geen nest vastgesteld" |
+      waarneming_type == "Nest is al bestreden door derden" |
+      waarneming_type == "Andere soort dan AH"
         ~ "absent",
       
       waarneming_type == "Waarneming onzeker" ~ "doubtful",
       
-      TRUE ~ ""
+      TRUE ~ "present"
     ))
 ```
 
