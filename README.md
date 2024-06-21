@@ -37,7 +37,6 @@ The repository structure is based on [Cookiecutter Data Science](http://drivenda
 │   ├── dwc_mapping.Rmd    : Darwin Core mapping script
 │   ├── run_fetch_data.R   : R script to run code in fetch_data.Rmd in an automatic way within a GitHub action
 │   ├── run_dwc_mapping.R  : R script to run code in dcw_mapping.Rmd in an automatic way within a GitHub action
-│   └── install_packages.R : R script to install all needed packages
 |
 └── data
 │   └── processed          : Darwin Core output of mapping script GENERATED
@@ -47,7 +46,7 @@ The repository structure is based on [Cookiecutter Data Science](http://drivenda
 
 1. Clone this repository to your computer
 2. Open the RStudio project file
-3. Run `install_packages.R` to install any required packages
+3. Run `devtools::install()` to install any required packages
 4. Open `fetch_data.Rmd` [R Markdown file](https://rmarkdown.rstudio.com/) in RStudio to fetch data manually
 5. Open the `dwc_mapping.Rmd` [R Markdown file](https://rmarkdown.rstudio.com/) in RStudio to map data to DwC manually
 6. Click `Run > Run All` to generate the processed data
