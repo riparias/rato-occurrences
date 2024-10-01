@@ -199,7 +199,11 @@ testthat::test_that("scientificName is never NA and one of the list", {
     "Crassula helmsii",
     "Zizania latifolia",
     "Procambarus",
-    "Columba livia domestica"
+    "Columba livia domestica",
+    "Felis catus domestica",
+    "Muridae",
+    "Rattus rattus",
+    "Talpa europaea"
   )
   testthat::expect_true(all(!is.na(dwc_occurrence$scientificName)))
   testthat::expect_true(all(dwc_occurrence$scientificName %in% species))
@@ -214,7 +218,7 @@ testthat::test_that("kingdom is always equal to Plantae or Animalia", {
 
 testthat::test_that("taxonRank is always filled in and one of the list", {
   taxon_ranks <-
-    c("species", "genus", "form", "unknown", "kingdom", "family")
+    c("subspecies","species", "genus", "form", "unknown", "kingdom", "family")
   testthat::expect_true(all(!is.na(dwc_occurrence$taxonRank)))
   testthat::expect_true(
     all(dwc_occurrence$taxonRank %in% taxon_ranks)
