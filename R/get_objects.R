@@ -5,7 +5,12 @@
 #'
 #' @return tibble of requested objects.
 #' @export
-get_objects <- function(object_ids, token = get_token()) {
+get_objects <- function(object_ids,
+                        token = get_token(),
+                        domain = "https://gis.oost-vlaanderen.be/server/rest/services/",
+                        table_path = c("RATO2",
+                                       "RATO2_Dossiers_Publiek",
+                                       "MapServer")) {
   # Assert that objects were requested
   assertthat::assert_that(assertthat::not_empty(object_ids))
 
@@ -20,10 +25,8 @@ get_objects <- function(object_ids, token = get_token()) {
 
   # Build request for the API
   objects_request <-
-    httr2::request("https://gis.oost-vlaanderen.be/server/rest/services/") %>%
-    httr2::req_url_path_append("RATO2",
-                               "RATO2_Dossiers_Publiek",
-                               "MapServer",
+    httr2::request(domain) %>%
+    httr2::req_url_path_append(table_path,
                                "0",
                                glue::glue("query?where={object_id_query}")) %>%
     httr2::req_url_query(
