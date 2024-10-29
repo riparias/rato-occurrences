@@ -39,14 +39,16 @@ The current setup doesn't support authentication on a WFS layer. So, as a workar
 
 The query service recommends not requesting over 1000 objects in a single request. So we have to request the objects in batches and combine the responses.
 
-## Get a list of objects to fetch
+## RATO Oost Vlaanderen
+
+### Get a list of objects to fetch
 
 ```{r}
 all_object_ids <- list_object_ids(token = get_token())
 message(glue::glue("Expecting {length(all_object_ids)} records"))
 ```
 
-## Split the list of objects into batches
+### Split the list of objects into batches
 We can't request all the objects at once
 
 ```{r}
@@ -55,7 +57,7 @@ batched_object_ids <-
   split(all_object_ids, ceiling(seq_along(all_object_ids)/batch_size))
 ```
 
-## Fetch the batches and combine the result
+### Fetch the batches and combine the result
 ```{r Fetch the records in batches}
 batched_responses <- batched_object_ids %>% 
   purrr::map(get_objects, .progress = TRUE, token = get_token())
@@ -69,6 +71,34 @@ raw_occurrences <- purrr::list_rbind(batched_responses)
 assertthat::assert_that(
   length(all_object_ids) == nrow(raw_occurrences)
 )
+```
+## West-Vlaanderen
+
+```{r List west vlaanderen objects}
+wvl_object_ids <- list_object_ids(
+      token = get_token(username = "Ecosystem2_INBO",
+                        password = askpass::askpass(),
+                        domain = "https://gwadmin.west-vlaanderen.be/gwportal"),
+      domain = "https://gwadmin.west-vlaanderen.be/gwserver/rest/services",
+      table_path = c("Ecosystem2","AGS_ES2_Dossiers_Publiek","MapServer")
+    )
+
+```
+### Split the list of objects into batches
+We can't request all the objects at once
+
+```{r}
+batch_size <- 100 # having some inconsistent results with higher batch sizes
+wvl_batched <- 
+  split(wvl_object_ids, ceiling(seq_along(wvl_object_ids)/batch_size))
+```
+
+### Fetch the batches and combine the result
+```{r Fetch the records in batches}
+wvl_batched_responses <- wvl_batched %>% 
+  purrr::map(get_objects, .progress = TRUE, token = get_token())
+
+raw_occurrences <- purrr::list_rbind(batched_responses)
 ```
 
 ## Convert date fields
