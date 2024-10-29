@@ -30,7 +30,7 @@ get_token <- function(username = "RATO_INBO",
       # NOTE MUST USE CLIENT `referer`, otherwise you'll get a token but it will
       # not work!
       client = "referer",
-      referer = "https://gis.oost-vlaanderen.be",
+      referer = dirname(domain),
       expiration = expires,
       f = "json"
     )

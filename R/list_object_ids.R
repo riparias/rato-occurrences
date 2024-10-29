@@ -4,10 +4,11 @@
 #'
 #' @return Integer vector of (all) object ids.
 #' @export
-list_object_ids <- function(token = get_token()) {
+list_object_ids <- function(token = get_token(),
+                            domain = "https://gis.oost-vlaanderen.be/server/rest/services/") {
 
   object_ids_response <-
-    httr2::request("https://gis.oost-vlaanderen.be/server/rest/services/") %>%
+    httr2::request(domain) %>%
     httr2::req_url_path_append("RATO2",
                         "RATO2_Dossiers_Publiek",
                         "MapServer",
