@@ -9,7 +9,8 @@
 #' @export
 get_token <- function(username = "RATO_INBO",
                       password = Sys.getenv("ratopwd"),
-                      expires = 5) {
+                      expires = 5,
+                      domain = "https://gis.oost-vlaanderen.be/portal") {
   # Check that username and password are strings if provided
   assertthat::assert_that(assertthat::is.string(username))
   assertthat::assert_that(assertthat::is.string(password))
@@ -21,11 +22,11 @@ get_token <- function(username = "RATO_INBO",
 
   # Build request for the API
   token_request <-
-    httr2::request("https://gis.oost-vlaanderen.be") %>%
-    httr2::req_url_path("portal", "sharing", "rest", "generateToken") %>%
+    httr2::request(domain) %>%
+    httr2::req_url_path_append("sharing", "rest", "generateToken") %>%
     httr2::req_body_form(
       username = username,
-      password = Sys.getenv("ratopwd"),
+      password = password,
       # NOTE MUST USE CLIENT `referer`, otherwise you'll get a token but it will
       # not work!
       client = "referer",
