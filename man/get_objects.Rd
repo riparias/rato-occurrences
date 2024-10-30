@@ -4,7 +4,12 @@
 \alias{get_objects}
 \title{Get objects from the RATO ArcGIS Enterprise environment via the API}
 \usage{
-get_objects(object_ids, token = get_token())
+get_objects(
+  object_ids,
+  token = get_token(),
+  domain = "https://gis.oost-vlaanderen.be/server/rest/services/",
+  table_path = c("RATO2", "RATO2_Dossiers_Publiek", "MapServer")
+)
 }
 \arguments{
 \item{object_ids}{Vector of object_ids, will be converted to character.}

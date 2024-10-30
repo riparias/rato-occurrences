@@ -7,7 +7,8 @@
 get_token(
   username = "RATO_INBO",
   password = Sys.getenv("ratopwd"),
-  expires = 5
+  expires = 5,
+  domain = "https://gis.oost-vlaanderen.be/portal"
 )
 }
 \arguments{
