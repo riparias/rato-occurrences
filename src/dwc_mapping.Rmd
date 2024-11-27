@@ -596,6 +596,12 @@ dwc_data %<>% transmute(
   taxonRank = rank_clean
 )
 ```
+Sort by eventDate so the output is independent on the order of the raw data, which we can't control. 
+
+```{r}
+dwc_data <- 
+  dplyr::arrange(dwc_data, eventDate)
+```
 
 Reorder the columns so the most unique columns per record come first, and the ones most constant for the h<ole dataset come last. This makes it easier to see changes in the data when using a text editor and also makes it easier for git to correctly detect changes.
 
