@@ -16,6 +16,25 @@ testthat::test_that("The occurrence output exists", {
 
 testthat::test_that("Right columns in right order", {
   columns <- c(
+    "occurrenceID",
+    "occurrenceStatus",
+    "eventID",
+    "scientificName",
+    "eventDate",
+    "organismQuantity",
+    "organismQuantityType",
+    "samplingProtocol",
+    "samplingEffort",
+    "municipality",
+    "verbatimLatitude",
+    "verbatimLongitude",
+    "verbatimCoordinateSystem",
+    "verbatimSRS",
+    "decimalLatitude",
+    "decimalLongitude",
+    "coordinateUncertaintyInMeters",
+    "countryCode",
+    "geodeticDatum",
     "type",
     "language",
     "license",
@@ -24,30 +43,11 @@ testthat::test_that("Right columns in right order", {
     "institutionCode",
     "datasetName",
     "basisOfRecord",
-    "eventID",
-    "occurrenceID",
     "recordedBy",
-    "organismQuantity",
-    "organismQuantityType",
-    "occurrenceStatus",
-    "samplingProtocol",
-    "samplingEffort",
-    "eventDate",
-    "countryCode",
-    "municipality",
-    "verbatimLatitude",
-    "verbatimLongitude",
-    "verbatimCoordinateSystem",
-    "verbatimSRS",
-    "decimalLatitude",
-    "decimalLongitude",
-    "geodeticDatum",
-    "coordinateUncertaintyInMeters",
-    "scientificName",
     "kingdom",
     "taxonRank"
   )
-  testthat::expect_equal(names(dwc_occurrence), columns)
+  testthat::expect_named(dwc_occurrence, columns)
 })
 
 testthat::test_that("datasetID is always present and is equal to DOI dataset", {
