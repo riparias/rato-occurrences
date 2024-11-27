@@ -43,6 +43,11 @@ library(digest)         # To generate hashes
 library(rgbif)
 library(sf)             # To convert coordinate systems
 ```
+Load helper functions: 
+
+```{r load helper functions}
+devtools::load_all(here::here())
+```
 
 # Read source data
 
