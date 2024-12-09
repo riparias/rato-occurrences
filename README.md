@@ -1,6 +1,9 @@
+<!-- badges: start -->
 [![funding](https://img.shields.io/static/v1?label=published+through&message=LIFE+RIPARIAS&labelColor=00a58d&color=ffffff)](https://www.riparias.be/)
 [![fetch-data](https://github.com/riparias/rato-occurrences/actions/workflows/fetch-data.yaml/badge.svg)](https://github.com/riparias/rato-occurrences/actions/workflows/fetch-data.yaml)
 [![mapping and testing](https://github.com/riparias/rato-occurrences/actions/workflows/mapping_and_testing.yaml/badge.svg)](https://github.com/riparias/rato-occurrences/actions/workflows/mapping_and_testing.yaml)
+[![R-CMD-check](https://github.com/riparias/rato-occurrences/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/riparias/rato-occurrences/actions/workflows/R-CMD-check.yaml)
+<!-- badges: end -->
 
 ## Rationale
 
