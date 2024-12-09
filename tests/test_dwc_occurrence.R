@@ -220,3 +220,10 @@ testthat::test_that(
     )
   })
 
+testthat::test_that(
+  "Less than 1% of records were deleted compared to the last update",{
+   skip_if_offline()
+    # This is still over 1400 records as of when this test was created
+
+
+  })
