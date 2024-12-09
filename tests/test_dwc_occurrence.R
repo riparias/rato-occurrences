@@ -167,45 +167,10 @@ testthat::test_that("eventDate is always filled in", {
 })
 
 testthat::test_that("scientificName is never NA and one of the list", {
-  species <- c(
-    "Ondatra zibethicus",
-    "Fallopia japonica",
-    "Castor fiber",
-    "Gallus gallus domesticus",
-    "Myriophyllum aquaticum",
-    "Alopochen aegyptiaca",
-    "Ludwigia peploides",
-    "Martes foina",
-    "Hydrocotyle ranunculoides",
-    "Vespa velutina",
-    "Heracleum mantegazzianum",
-    "Rattus norvegicus",
-    "Cairina moschata",
-    "Anser anser domesticus",
-    "Neovison vison",
-    "Trachemys scripta",
-    "Psittacula krameri",
-    "Oryctolagus cuniculus",
-    "Branta canadensis",
-    "Branta leucopsis",
-    "Anatidae",
-    "Anser anser",
-    "Impatiens glandulifera",
-    "Myocastor coypus",
-    "Lysichiton americanus",
-    "Procambarus clarkii",
-    "Ludwigia grandiflora",
-    "Sciurus",
-    "Crassula helmsii",
-    "Zizania latifolia",
-    "Procambarus",
-    "Columba livia domestica",
-    "Felis catus domestica",
-    "Muridae",
-    "Rattus rattus",
-    "Talpa europaea",
-    "Saururus cernuus"
-  )
+  # species is an exported data object (a character vector) that contains
+  # a list of species names known to be included in the RATO dataset.
+  # When new species are added, you can edit it by updating data/species.rda
+
   testthat::expect_true(all(!is.na(dwc_occurrence$scientificName)))
   testthat::expect_true(all(dwc_occurrence$scientificName %in% species))
 })
