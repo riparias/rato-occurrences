@@ -15,7 +15,7 @@ get_reference <- function() {
   github_csv_url <-
     paste0(
       "https://raw.githubusercontent.com/riparias/rato-occurrences/main/",
-      "data/processed/occurrence.csv"
+      "inst/data/processed/occurrence.csv"
     )
 
   readr::read_csv(
