@@ -13,8 +13,21 @@
 #' get_current()
 get_current <- function() {
 
+  # `occurrence.csv` is stored in inst/data/processed/occurrence.csv, everything
+  # stored in inst is placed into the package root after installing. Thus in
+  # data/processed/occurrence.csv, but when directly navigating the repo, the
+  # file still remains in inst.
+
+  data_object_path <-
+    system.file("data/processed", package = "rato.occurrences")
+
+  # Make sure data_object_path exists
+  assertthat::assert_that(
+    dir.exists(data_object_path)
+  )
+
   readr::read_csv(
-    file.path(here::here(), "data/processed/occurrence.csv"),
+    file.path(data_object_path, "occurrence.csv"),
     show_col_types = FALSE,
     progress = FALSE
   )
