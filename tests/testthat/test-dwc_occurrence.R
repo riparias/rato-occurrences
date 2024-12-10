@@ -1,12 +1,15 @@
 # read proposed new version of the DwC mapping
-occs_path <- here::here("data", "processed", "occurrence.csv")
-dwc_occurrence <-
-  readr::read_csv(occs_path, guess_max = 10000, show_col_types = FALSE)
+dwc_occurrence <- get_current()
 
 # tests
 
 test_that("The occurrence output exists", {
-  expect_true(file.exists(occs_path))
+  expect_true(
+    file.exists(
+      system.file("data/processed/occurrence.csv",
+                  package = "rato.occurrences")
+      )
+    )
 })
 
 test_that("Right columns in right order", {
