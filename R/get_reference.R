@@ -18,9 +18,10 @@ get_reference <- function() {
       "inst/data/processed/occurrence.csv"
     )
 
-  readr::read_csv(
-    github_csv_url,
-    show_col_types = FALSE,
-    progress = FALSE
-  )
+  httr2::request(github_csv_url) %>%
+    httr2::req_retry() %>%
+    httr2::req_perform() %>%
+    httr2::resp_body_string() %>%
+    readr::read_csv(show_col_types = FALSE,
+                    progress = FALSE)
 }
