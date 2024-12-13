@@ -218,3 +218,27 @@ test_that(
     )
   })
 
+test_that("Less than 1% of records were removed since last publication", {
+  # Total size has not decreased by more than 1%
+  expect_gte(nrow(dwc_occurrence) / nrow(get_reference()), 0.99)
+
+  # Proportion of deleted records is lower than 1% of the total size
+  deleted_records <-
+    dplyr::setdiff(
+      get_reference()$occurrenceID,
+      dwc_occurrence$occurrenceID
+    )
+
+  ## Compared to the new updated dataset
+  expect_lte(
+    length(deleted_records) / nrow(dwc_occurrence),
+    0.01
+  )
+
+  ## Compared to the published dataset
+  expect_lte(
+    length(deleted_records) / nrow(get_reference()),
+    0.01
+  )
+
+})
