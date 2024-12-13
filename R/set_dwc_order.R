@@ -20,19 +20,19 @@ set_dwc_order <- function(x){
   assertthat::assert_that(is.data.frame(x))
   dplyr::relocate(
     x,
-    occurrenceID,
-    occurrenceStatus,
-    eventID,
-    scientificName,
-    eventDate,
+    "occurrenceID",
+    "occurrenceStatus",
+    "eventID",
+    "scientificName",
+    "eventDate",
     dplyr::starts_with("organism"),
     dplyr::starts_with("sampling"),
-    municipality,
+    "municipality",
     dplyr::starts_with("verbatim"),
     dplyr::starts_with("decimal"),
-    coordinateUncertaintyInMeters,
-    countryCode,
-    geodeticDatum
+    "coordinateUncertaintyInMeters",
+    "countryCode",
+    "geodeticDatum"
 
   )
 }

@@ -5,8 +5,7 @@
 \alias{species}
 \title{A vector of species names known to be included in the RATO dataset}
 \format{
-\subsection{\code{species} A vector with over 30 species names.}{
-}
+\code{species} A vector with over 30 species names.
 }
 \usage{
 species

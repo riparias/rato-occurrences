@@ -613,5 +613,7 @@ dwc_data <- set_dwc_order(dwc_data)
 Save to CSV:
 
 ```{r write out}
-write_csv(dwc_data, here("data", "processed", "occurrence.csv"), na = "")
+write_csv(dwc_data,
+          here::here("inst" , "data", "processed", "occurrence.csv"),
+          na = "")
 ```
