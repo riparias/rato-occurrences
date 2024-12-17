@@ -89,7 +89,7 @@ get_modified_lines <-
     # on the hashes.
     ## If the `drop_new_records` flag is `TRUE`, drop any lines that are completely new
     modified_lines <-
-      line_which(cur_hash, ref_hash) %>%
+      dplyr::setdiff(seq_along(cur_hash), line_which(cur_hash, ref_hash)) %>%
       dplyr::setdiff(new_lines) %>%
       current[.]
 
