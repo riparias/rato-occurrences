@@ -91,8 +91,11 @@ get_modified_lines <-
 
     # Now find all lines that have changed between current and reference based
     # on the hashes.
-    ## If the `drop_new_records` flag is `TRUE`, drop any lines that are completely new
+    ## If the `drop_new_records` flag is `TRUE`, drop any lines that are
+    ## completely new
     modified_lines <-
+      # The difference between all lines, and the lines where ref and cur are
+      # the same
       dplyr::setdiff(seq_along(cur_hash), line_which(cur_hash, ref_hash)) %>%
       dplyr::setdiff(new_lines) %>%
       current[.]
