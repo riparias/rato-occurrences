@@ -44,6 +44,12 @@ get_modified_lines <-
     current <- readr::read_lines(cache_url(current_path), progress = FALSE)
     reference <- readr::read_lines(cache_url(reference_path), progress = FALSE)
 
+    # Check that current differs from reference
+    assertthat::assert_that(
+      digest::digest(current, algo = "spookyhash") !=
+        digest::digest(reference, algo = "spookyhash"),
+      msg = "The current file is identical as the reference file."
+    )
 
     # Remove new lines based on occurrenceID
     if (drop_new_records) {
