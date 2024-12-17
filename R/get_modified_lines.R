@@ -16,7 +16,7 @@ line_which <- function(x, fixed_patterns) {
 #'
 #' Optionally you can exclude new records (based on `occurrenceID`) from the
 #' result. If `drop_new_records` is set to `FALSE`, this function should work
-#' for any two text files. It's based on ``xxhash32`` hashes compared line by
+#' for any two text files. It's based on `spookyhash` hashes compared line by
 #' line.
 #'
 #' @param current_path The current file path to compare against. By default, this is the
@@ -84,10 +84,10 @@ get_modified_lines <-
 
     # Calculate hashes line by line for current and reference
     ## Create hashing function for vectorised input
-    xxhash32 <- digest::getVDigest(algo = "xxhash32")
+    spookyhash <- digest::getVDigest(algo = "spookyhash")
 
-    cur_hash <- xxhash32(current)
-    ref_hash <- xxhash32(reference)
+    cur_hash <- spookyhash(current)
+    ref_hash <- spookyhash(reference)
 
     # Now find all lines that have changed between current and reference based
     # on the hashes.
