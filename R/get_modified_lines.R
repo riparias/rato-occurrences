@@ -76,6 +76,10 @@ get_modified_lines <-
           current_csv$occurrenceID,
           new_records_id
         )
+    } else {
+      # Since new lines are removed from the output, if `new_lines` is empty,
+      # the new lines will be included in the returned object
+      new_lines <- integer(0)
     }
 
     # Calculate hashes line by line for current and reference
