@@ -54,17 +54,11 @@ get_modified_lines <-
     # Remove new lines based on occurrenceID
     if (drop_new_records) {
       current_csv <- readr::read_csv(
-        cache_url(current_path),
         file = paste0(current, sep = "\n"),
         col_select = "occurrenceID",
-        show_col_types = FALSE
         show_col_types = FALSE,
         progress = FALSE
       )
-      reference_csv <-
-        readr::read_csv(cache_url(reference_path),
-      col_select = "occurrenceID",
-      show_col_types = FALSE)
       reference_csv <- readr::read_csv(
         file = paste0(reference, sep = "\n"),
         col_select = "occurrenceID",
