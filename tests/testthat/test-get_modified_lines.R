@@ -20,25 +20,35 @@ test_that("get_modified_lines() can return a list of lines with the modified lin
 })
 
 test_that("get_modified_lines() can drop the new records and only show modified records", {
-  expect_lt(
-    nrow(get_modified_lines(test_current_path, test_reference_path, as_df = TRUE, drop_new_records = TRUE)),
-    149255
-  )
+  expect_lt(nrow(
+    get_modified_lines(
+      test_current_path,
+      test_reference_path,
+      as_df = TRUE,
+      drop_new_records = TRUE
+    )
+  ), 149255)
 })
 
 test_that("get_modified_lines() can return modified lines, new records included", {
   expect_identical(
-    nrow(get_modified_lines(test_current_path, test_reference_path, as_df = TRUE, drop_new_records = FALSE)),
-    1128L
+    nrow(
+      get_modified_lines(
+        test_current_path,
+        test_reference_path,
+        as_df = TRUE,
+        drop_new_records = FALSE
+      )
+    ), 1128L
   )
 })
 
 test_that("get_modified_lines() does not repeat the header in the first line", {
-  df_modified_lines <- get_modified_lines(test_current_path, test_reference_path, as_df = TRUE)
-  expect_false(
-    dplyr::setequal(
-      colnames(df_modified_lines),
-      dplyr::slice_head(df_modified_lines, n = 1)
-          )
-  )
+  df_modified_lines <-
+    get_modified_lines(test_current_path, test_reference_path, as_df = TRUE)
+
+  expect_false(dplyr::setequal(
+    colnames(df_modified_lines),
+    dplyr::slice_head(df_modified_lines, n = 1)
+  ))
 })
