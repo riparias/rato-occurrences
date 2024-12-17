@@ -20,7 +20,7 @@ test_that("get_modified_lines() can return a list of lines with the modified lin
 })
 
 test_that("get_modified_lines() can drop the new records and only show modified records", {
-  expect_less_than(
+  expect_lt(
     nrow(get_modified_lines(test_current_path, test_reference_path, as_df = TRUE, drop_new_records = TRUE)),
     149255
   )
