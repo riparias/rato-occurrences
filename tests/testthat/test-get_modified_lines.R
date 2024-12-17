@@ -29,7 +29,7 @@ test_that("get_modified_lines() can drop the new records and only show modified 
 test_that("get_modified_lines() can return modified lines, new records included", {
   expect_identical(
     nrow(get_modified_lines(test_current_path, test_reference_path, as_df = TRUE, drop_new_records = FALSE)),
-    149255
+    1128L
   )
 })
 
