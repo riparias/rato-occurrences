@@ -1,3 +1,16 @@
+#' Find the line numbers in a vector that match fixed patterns
+#'
+#' This function takes a vector \code{x} and a vector of \code{fixed_patterns},
+#' and returns the line numbers in \code{x} where the patterns are found.
+#'
+#' @param x A character vector to search for patterns
+#' @param fixed_patterns A character vector of fixed patterns to match
+#' @return A numeric vector of line numbers where the patterns are found
+#' @export
+#' @examples
+#' x <- c("a", "b", "c", "d", "e")
+#' fixed_patterns <- c("b", "d")
+#' line_which(x, fixed_patterns)
 line_which <- function(x, fixed_patterns) {
   dplyr::left_join(
     dplyr::tibble(x),
