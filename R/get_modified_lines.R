@@ -28,10 +28,10 @@ line_which <- function(x, fixed_patterns) {
 #' @param as_df By default, return the modified lines as a data frame. If FALSE,
 #'   return as a character vector of lines.
 #'
-#' @return
+#' @return A data frame with the modified lines or a character vector of lines.
 #' @export
 #'
-#' @examples
+#' @examples get_modified_lines()
 get_modified_lines <-
   function(current_path = "data/processed/occurrence.csv",
            reference_path = paste0(

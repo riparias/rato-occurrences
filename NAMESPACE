@@ -2,6 +2,7 @@
 
 export("%>%")
 export(cache_url)
+export(get_modified_lines)
 export(get_objects)
 export(get_token)
 export(list_object_ids)
