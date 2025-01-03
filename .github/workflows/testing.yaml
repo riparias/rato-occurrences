@@ -53,5 +53,8 @@ jobs:
 
       - name: Run tests
         run: |
-          source("tests/testthat/test-dwc_occurrence.R")
+          devtools::install(quick = TRUE)
+          library(rato.occurrences)
+          library(testthat)
+          testthat::test_dir("tests/testthat/")
         shell: Rscript {0}
