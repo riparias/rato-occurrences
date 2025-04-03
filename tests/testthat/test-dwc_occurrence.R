@@ -182,7 +182,7 @@ test_that("kingdom is always equal to Plantae or Animalia", {
 
 test_that("taxonRank is always filled in and one of the list", {
   taxon_ranks <-
-    c("subspecies","species", "genus", "form", "unknown", "kingdom", "family")
+    c("subspecies", "species", "genus", "form", "unknown", "kingdom", "family")
   expect_true(all(!is.na(dwc_occurrence$taxonRank)))
   expect_true(
     all(dwc_occurrence$taxonRank %in% taxon_ranks)
@@ -210,7 +210,7 @@ test_that("known test objects are removed from output", {
 })
 
 test_that(
-  "There is at least one record for every year since the beginning of the data",{
+  "There is at least one record for every year since the start of the data", {
     expect_equal(
       sort(unique(lubridate::year(dwc_occurrence$eventDate))),
       seq(2021, as.double(format(Sys.Date(), "%Y"))),

@@ -64,10 +64,11 @@ occ_col_scramble <-
     show_col_types = FALSE,
     n_max = 5
   ) %>%
-  .[, sample(seq(ncol(.)))]
+  .[, sample(seq_len(ncol(.)))]
 
 test_that("set_dwc_order changes the order of columns to the correct one", {
-  expect_identical(colnames(set_dwc_order(occ_col_wrong_order)), expected_column_order)
+  expect_identical(colnames(set_dwc_order(occ_col_wrong_order)),
+                   expected_column_order)
 
   expect_named(
     ignore.order = FALSE,
