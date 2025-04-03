@@ -16,7 +16,7 @@
 #' @return A tibble with the columns in the default order of the dwc mappings on
 #'   the IPT, except identiable columns are placed at the front.
 #' @export
-set_dwc_order <- function(x){
+set_dwc_order <- function(x) {
   assertthat::assert_that(is.data.frame(x))
   dplyr::relocate(
     x,
@@ -25,14 +25,30 @@ set_dwc_order <- function(x){
     "eventID",
     "scientificName",
     "eventDate",
-    dplyr::starts_with("organism"),
-    dplyr::starts_with("sampling"),
+    "organismQuantity",
+    "organismQuantityType",
+    "samplingProtocol",
+    "samplingEffort",
     "municipality",
-    dplyr::starts_with("verbatim"),
-    dplyr::starts_with("decimal"),
+    "verbatimLatitude",
+    "verbatimLongitude",
+    "verbatimCoordinateSystem",
+    "verbatimSRS",
+    "decimalLatitude",
+    "decimalLongitude",
     "coordinateUncertaintyInMeters",
     "countryCode",
-    "geodeticDatum"
-
+    "geodeticDatum",
+    "type",
+    "language",
+    "license",
+    "rightsHolder",
+    "datasetID",
+    "institutionCode",
+    "datasetName",
+    "basisOfRecord",
+    "recordedBy",
+    "kingdom",
+    "taxonRank"
   )
 }
