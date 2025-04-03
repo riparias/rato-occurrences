@@ -604,7 +604,7 @@ dwc_data <-
   dplyr::arrange(dwc_data, eventDate)
 ```
 
-Reorder the columns so the most unique columns per record come first, and the ones most constant for the h<ole dataset come last. This makes it easier to see changes in the data when using a text editor and also makes it easier for git to correctly detect changes.
+Reorder the columns so the most unique columns per record come first, and the ones most constant for the whole dataset come last. This makes it easier to see changes in the data when using a text editor and also makes it easier for git to correctly detect changes.
 
 ```{r reorder columns}
 dwc_data <- set_dwc_order(dwc_data)
