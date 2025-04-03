@@ -38,7 +38,7 @@ get_objects <- function(object_ids, token = get_token()) {
     httr2::req_perform() %>%
     httr2::resp_body_json()
 
-  # Foreward any error messages
+  # Forward any error messages
   assertthat::assert_that(
     isTRUE(purrr::pluck(objects_response, "error", "message", .default = TRUE)),
     msg = purrr::pluck(objects_response, "error", "message")
