@@ -40,7 +40,7 @@ library(magrittr)       # To use %<>% pipe
 library(sf)             # To convert coordinate systems
 library(janitor)        # To clean input data
 library(digest)         # To generate hashes
-library(rgbif)
+library(rgbif)          # To extract scientific names from gbif backbone
 library(sf)             # To convert coordinate systems
 ```
 Load helper functions: 
@@ -488,7 +488,7 @@ gbif_codes <- input_data %>% select(gbif_code) %>% distinct()
 scientific_names <- 
   map_dfr(gbif_codes$gbif_code, function(x) {
   if (!is.na(x)) {
-    name_usage(key = x)$data %>%
+    rgbif::name_usage(key = x)$data %>%
     select(key, scientificName, canonicalName, rank)}
   else {tibble(scientificName = NA_character_, canonicalName = NA_character_)}
   }) 
