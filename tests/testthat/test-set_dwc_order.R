@@ -1,3 +1,7 @@
+# The expected column order is created so the columns with the most unique
+# values per record come first, and the one's that are most constant for the
+# whole dataset come last. This makes it easier for git to pick up changes in
+# the output data.
 expected_column_order <-
   c(
     "occurrenceID", "occurrenceStatus", "eventID", "scientificName",
