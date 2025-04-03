@@ -30,9 +30,7 @@ Load helper functions:
 
 ```{r load helper functions}
 here::i_am("inst/source/fetch_data.Rmd")
-devtools::install(package = here::here("."),
-                  quiet = TRUE,
-                  quick = TRUE)
+devtools::load_all(path = here::here())
 ```
 # Fetch data from the MapService
 The current setup doesn't support authentication on a WFS layer. So, as a workaround, we can send a number of queries to get the data out. 

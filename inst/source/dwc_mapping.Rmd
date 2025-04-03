@@ -47,9 +47,7 @@ Load helper functions:
 
 ```{r load helper functions}
 here::i_am("inst/source/dwc_mapping.Rmd")
-devtools::install(pkg = here::here("."),
-                  quiet = TRUE,
-                  quick = TRUE)
+devtools::load_all(path = here::here())
 ```
 
 # Read source data
