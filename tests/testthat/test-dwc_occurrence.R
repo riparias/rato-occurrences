@@ -169,8 +169,24 @@ test_that("scientificName is never NA and one of the list", {
   # a list of species names known to be included in the RATO dataset.
   # When new species are added, you can edit it by updating data/species.rda
 
+  scientific_names_present <- unique(dwc_occurrence$scientificName)
+
   expect_true(all(!is.na(dwc_occurrence$scientificName)))
-  expect_true(all(dwc_occurrence$scientificName %in% species))
+
+  expect(
+    all(scientific_names_present %in% species),
+    glue::glue(
+      "New species detected: {missing_species_names}",
+      missing_species_names = glue::glue_collapse(
+        glue::backtick(
+          scientific_names_present[!scientific_names_present %in% species]
+        ),
+        sep = ", ",
+        last = " and "
+      )
+    )
+  )
+
 })
 
 test_that("kingdom is always equal to Plantae or Animalia", {
