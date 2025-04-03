@@ -46,6 +46,7 @@ library(sf)             # To convert coordinate systems
 Load helper functions: 
 
 ```{r load helper functions}
+here::i_am("src/dwc_mapping.Rmd")
 devtools::load_all(here::here())
 ```
 
