@@ -19,14 +19,14 @@ get_reference <- function() {
     )
 
   httr2::request(github_csv_url) %>%
-    httr2::req_retry() %>%
+    httr2::req_retry(max_tries = 3) %>%
     httr2::req_cache(path = tempdir(), max_age = 600) %>%
     httr2::req_perform() %>%
     httr2::resp_body_raw() %>%
     rawToChar() %>%
     readr::read_csv(show_col_types = FALSE,
                     progress = FALSE,
-                    col_types = 
+                    col_types =
                       readr::cols(
                         occurrenceID = readr::col_character(),
                         occurrenceStatus = readr::col_character(),
