@@ -6,7 +6,7 @@ dwc_occurrence <- get_current()
 test_that("The occurrence output exists", {
   expect_true(
     file.exists(
-      system.file("data/processed/occurrence.csv",
+      system.file("extdata/processed/occurrence.csv",
                   package = "rato.occurrences")
       )
     )

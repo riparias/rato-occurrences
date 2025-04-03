@@ -57,7 +57,7 @@ occ_col_wrong_order <- dplyr::tibble(
 occ_col_scramble <-
   readr::read_csv(
     file.path(
-      system.file("data/processed", package = "rato.occurrences"),
+      system.file("extdata/processed", package = "rato.occurrences"),
       "occurrence.csv"
     ),
     progress = FALSE,

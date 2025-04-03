@@ -615,6 +615,6 @@ Save to CSV:
 
 ```{r write out}
 write_csv(dwc_data,
-          here::here("inst" , "data", "processed", "occurrence.csv"),
+          here::here("inst" , "extdata", "processed", "occurrence.csv"),
           na = "")
 ```

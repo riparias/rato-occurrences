@@ -15,7 +15,7 @@ get_reference <- function() {
   github_csv_url <-
     paste0(
       "https://raw.githubusercontent.com/riparias/rato-occurrences/main/",
-      "inst/data/processed/occurrence.csv"
+      "inst/extdata/processed/occurrence.csv"
     )
 
   httr2::request(github_csv_url) %>%

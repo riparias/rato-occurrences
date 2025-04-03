@@ -19,7 +19,7 @@ get_current <- function() {
   # file still remains in inst.
 
   data_object_path <-
-    system.file("data/processed", package = "rato.occurrences")
+    system.file("extdata/processed", package = "rato.occurrences")
 
   # Make sure data_object_path exists
   assertthat::assert_that(
