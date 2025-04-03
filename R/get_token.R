@@ -15,7 +15,7 @@ get_token <- function(username = "RATO_INBO",
   assertthat::assert_that(assertthat::is.string(password))
 
   # If the pwd variable isn't set, prompt for password when session interactive
-  if(password == ""){
+  if (password == "") {
     Sys.setenv(ratopwd = askpass::askpass())
   }
 
@@ -41,7 +41,7 @@ get_token <- function(username = "RATO_INBO",
     httr2::resp_body_json()
 
   # If unable to login, reset the password so one is requested next time.
-  if(
+  if (
     purrr::pluck(token_response, "error", "code", .default = FALSE)
   ) {
     Sys.setenv(ratopwd = "")

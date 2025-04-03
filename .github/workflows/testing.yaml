@@ -6,7 +6,7 @@ on:
 name: mapping and testing
 
 jobs:
-  mapping:
+  testing:
     runs-on: ${{ matrix.config.os }}
 
     name: ${{ matrix.config.os }} (${{ matrix.config.r }})
@@ -55,5 +55,16 @@ jobs:
         run: |
           devtools::install(quick = TRUE)
           library(rato.occurrences)
-          source("tests/test_dwc_occurrence.R")
+          library(testthat)
+          testthat::test_dir("tests/testthat/")
         shell: Rscript {0}
+        continue-on-error: true
+  comment:
+    needs: testing
+    runs-on: ubuntu-latest
+    steps:
+      - uses: mainmatter/continue-on-error-comment@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          outcome: ${{ steps.testing.outcome }}
+          test-id: "Test Failures"

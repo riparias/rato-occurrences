@@ -60,8 +60,8 @@ jobs:
         env:
           ratopwd: ${{ secrets.RATOPWD }}
         run: |
-          source("src/run_fetch_data.R")
-          source("src/run_dwc_mapping.R")
+          source("inst/source/run_fetch_data.R")
+          source("inst/source/run_dwc_mapping.R")
         shell: Rscript {0}
 
       - name: Commit and push changes

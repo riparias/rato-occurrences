@@ -4,5 +4,5 @@
 #' to be included in this dataset. Checks are run against this list to detect
 #' when new species are added.
 #'
-#' @format ## `species` A vector with over 30 species names.
+#' @format `species` A vector with over 30 species names.
 "species"
