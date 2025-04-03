@@ -3,6 +3,10 @@ library(knitr)
 
 # create temporary R file
 tempR <- tempfile(fileext = ".R")
-knitr::purl("./src/dwc_mapping.Rmd", output=tempR)
+# look for files relative to the location of this script
+here::i_am("inst/source/run_dwc_mapping.R")
+
+# execute them
+knitr::purl(here::here("inst/source/dwc_mapping.Rmd"), output=tempR)
 source(tempR)
 unlink(tempR)

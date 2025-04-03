@@ -8,8 +8,13 @@ if (!all(required %in% installed)) {
 }
 library(knitr)
 
+# look for files relative to the location of this script
+here::i_am("inst/source/run_fetch_data.R")
+
 # create temporary R file
 tempR <- tempfile(fileext = ".R")
-knitr::purl("./src/fetch_data.Rmd", output=tempR)
+
+# execute them
+knitr::purl(here::here("inst/source/fetch_data.Rmd"), output=tempR)
 source(tempR)
 unlink(tempR)
