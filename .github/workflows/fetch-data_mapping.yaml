@@ -39,6 +39,9 @@ jobs:
         with:
           r-version: ${{ matrix.config.r }}
           http-user-agent: ${{ matrix.config.http-user-agent }}
+          
+      - name: Set CRAN repo to Posit Public Package Manager
+        run: echo "options(repos = c(CRAN = 'https://packagemanager.posit.co/cran/latest'))" >> ~/.Rprofile
 
       - name: Setup pandoc
         uses: r-lib/actions/setup-pandoc@v2
