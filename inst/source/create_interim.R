@@ -38,8 +38,15 @@ interim_data <-
 
   dplyr::filter(!Soort %in% c("Duiven", "Kippen", "Kippen:", "Neerhofdier(en)", "Neerhofdier(en):", "Zwerfkatten"))
 # Write out ---------------------------------------------------------------
+readr::write_csv(interim_data,
+  here::here("inst", "extdata", "processed", "interim.csv"),
+  na = ""
+)
 
-write_csv(interim_data,
-    here::here("inst", "extdata", "processed", "interim.csv"),
-    na = ""
+# Write out, hive partitioning --------------------------------------------
+
+interim_data |>
+  dplyr::group_by(Soort) |>
+  arrow::write_csv_dataset(
+    path = file.path("inst", "extdata", "processed", "interim_part")
   )
