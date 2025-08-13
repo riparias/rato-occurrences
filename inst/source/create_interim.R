@@ -34,6 +34,11 @@ interim_data <-
   tidyr::pivot_longer(cols = dplyr::starts_with("p_"), values_to = "p_key_value", names_to = c("p_field"), values_drop_na = TRUE, names_repair = "unique") |>
   dplyr::mutate(p_field = stringr::str_remove(p_field, "_\\d$")) |>
   tidyr::separate(p_key_value, into = c("p_key", "p_value"), sep = " = ", remove = TRUE, convert = TRUE, extra = "drop") |>
+
+# Clean up Soort column ---------------------------------------------------
+  dplyr::mutate(Soort = stringr::str_remove(Soort, ":")) |>
+  dplyr::mutate(Soort = stringr::str_squish(Soort)) |>
+
 # Filter out non-relevant species -----------------------------------------
 
   dplyr::filter(!Soort %in% c("Duiven", "Kippen", "Kippen:", "Neerhofdier(en)", "Neerhofdier(en):", "Zwerfkatten"))
