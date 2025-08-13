@@ -27,7 +27,7 @@ Imports:
     httr2,
     magrittr,
     purrr,
-    ratatouille (>= 0.1.1.9000),
+    ratatouille (>= 1.0.0),
     readr,
     tidyr
 Suggests: 
