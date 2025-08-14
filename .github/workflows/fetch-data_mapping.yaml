@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     branches: [ main ]
 
-name: fetch-data
+name: Fetch RATO data & apply mapping
 
 jobs:
   fetch-data:
