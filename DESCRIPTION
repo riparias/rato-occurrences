@@ -1,6 +1,6 @@
 Package: rato.occurrences
 Title: Darwin Core Mapping RATO data
-Version: 0.0.0.9000
+Version: 1.0.0.9000
 Authors@R: c(
     person("Pieter", "Huybrechts", , "pieter.huybrechts@inbo.be", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-6658-6062")),
@@ -19,9 +19,7 @@ Depends:
     R (>= 3.5)
 Imports: 
     arrow,
-    askpass,
     assertthat,
-    curl,
     dplyr,
     glue,
     httr2,
@@ -46,5 +44,5 @@ Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
-Remotes: 
+Remotes:  
     inbo/ratatouille

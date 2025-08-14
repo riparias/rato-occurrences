@@ -41,7 +41,6 @@ library(sf)             # To convert coordinate systems
 library(janitor)        # To clean input data
 library(digest)         # To generate hashes
 library(rgbif)          # To extract scientific names from gbif backbone
-library(sf)             # To convert coordinate systems
 ```
 Load helper functions: 
 
