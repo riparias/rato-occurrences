@@ -16,75 +16,11 @@ output:
 # Setup 
 
 ```{r setup, include = FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = TRUE, message = TRUE)
-```
-
-Load libraries:
-
-```{r}
-library(here)     # to work with paths
-library(readr)    # to read csv files
-```
-
-Load helper functions: 
-
-```{r load helper functions}
-here::i_am("inst/source/fetch_data.Rmd")
-devtools::load_all(path = here::here())
-```
-# Fetch data from the MapService
-The current setup doesn't support authentication on a WFS layer. So, as a workaround, we can send a number of queries to get the data out. 
-
-1) List all the object ids
-2) Query all fields for these object ids
-
-The query service recommends not requesting over 1000 objects in a single request. So we have to request the objects in batches and combine the responses.
-
-## Get a list of objects to fetch
-
-```{r}
-all_object_ids <- list_object_ids(token = get_token())
-message(glue::glue("Expecting {length(all_object_ids)} records"))
-```
-
-## Split the list of objects into batches
-We can't request all the objects at once
-
-```{r}
-batch_size <- 100 # having some inconsistent results with higher batch sizes
-batched_object_ids <- 
-  split(all_object_ids, ceiling(seq_along(all_object_ids)/batch_size))
-```
-
-## Fetch the batches and combine the result
-```{r Fetch the records in batches}
-batched_responses <- batched_object_ids %>% 
-  purrr::map(get_objects, .progress = TRUE, token = get_token())
-
-raw_occurrences <- purrr::list_rbind(batched_responses)
-```
-
-### Check that we got the number of records we expect
-
-```{r}
-assertthat::assert_that(
-  length(all_object_ids) == nrow(raw_occurrences)
-)
-```
-
-## Convert date fields
-Esri reports it's dates as miliseconds since 1970-01-01
-```{r}
-raw_occurrences <-
-  raw_occurrences %>%
-  dplyr::mutate(dplyr::across(
-    dplyr::contains("Datum"),
-    ~ as.POSIXct(.x / 1000, origin = "1970-01-01")
-  ))
+knitr::opts_chunk$set(echo = FALSE, warning = TRUE, message = FALSE)
 ```
 
 ## Create object for mapping to use
 
-```{r}
-raw_data <- raw_occurrences
+```{r Fetch raw data via API call using ratatouille package}
+raw_data <- ratatouille::ratatouille(source = "rato")
 ```
