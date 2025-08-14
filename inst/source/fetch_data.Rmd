@@ -16,7 +16,7 @@ output:
 # Setup 
 
 ```{r setup, include = FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = TRUE, message = FALSE)
+knitr::opts_chunk$set(echo = FALSE, warning = TRUE, message = interactive())
 ```
 
 ## Create object for mapping to use
