@@ -18,9 +18,7 @@ License: MIT + file LICENSE
 Depends: 
     R (>= 3.5)
 Imports: 
-    askpass,
     assertthat,
-    curl,
     dplyr,
     glue,
     httr2,
