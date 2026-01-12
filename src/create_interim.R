@@ -2,18 +2,19 @@ library(ratatouille)
 library(dplyr)
 library(stringr)
 library(tidyr)
+library(janitor)
 library(readr)
 library(here)
 
 # GET LIVE DATA
-raw_data <- ratatouille::ratatouille()
+raw_data <- ratatouille::ratatouille(source = "rato")
 
 # PROCESS TO INTERIM DATA
 
 # Exclude "Werken"
 interim_data <- dplyr::filter(raw_data, Domein != "Werken")
 
-# Select and reorder relevant columns
+# Select relevant columns and clean their names
 relevant_cols <- c(
   "Dossier_ID",
   "Soort",
@@ -28,9 +29,12 @@ relevant_cols <- c(
   "Materiaal_Vast",
   "Materiaal_Consumptie"
 )
-interim_data <- dplyr::select(interim_data, dplyr::all_of(relevant_cols))
+interim_data <-
+  interim_data |>
+  dplyr::select(dplyr::all_of(relevant_cols)) |>
+  janitor::clean_names()
 
-# Clean string values
+# Clean values
 str_clean <- function(string) {
   string <-
     # Trim + use single spaces
@@ -44,12 +48,12 @@ str_clean <- function(string) {
 interim_data <-
   interim_data |>
   dplyr::mutate(
-    Soort = str_clean(Soort),
-    Waarneming = str_clean(Waarneming),
-    Actie = str_clean(Actie),
-    Materiaal_Vast = str_clean(Materiaal_Vast),
-    Materiaal_Consumptie = str_clean(Materiaal_Consumptie),
-    GlobalID = stringr::str_remove_all(GlobalID, "\\{|\\}")
+    soort = str_clean(soort),
+    waarneming = str_clean(waarneming),
+    actie = str_clean(actie),
+    materiaal_vast = str_clean(materiaal_vast),
+    materiaal_consumptie = str_clean(materiaal_consumptie),
+    global_id = stringr::str_remove_all(global_id, "\\{|\\}")
   )
 
 # Process property columns (Waarneming, Actie, Materiaal Vast, Materiaal Consumptie)
@@ -57,7 +61,7 @@ interim_data <-
   interim_data |>
   # Separate values of property columns into columns
   tidyr::separate(
-    Waarneming,
+    waarneming,
     into = c("p_waarneming_1", "p_waarneming_2", "p_waarneming_3", "p_waarneming_4", "p_waarneming_5", "p_waarneming_6"),
     sep = "\\s*\\;\\s*",
     remove = TRUE,
@@ -65,7 +69,7 @@ interim_data <-
     extra = "drop"
   ) |>
   tidyr::separate(
-    Actie,
+    actie,
     into = c("p_actie_1", "p_actie_2", "p_actie_3", "p_actie_4", "p_actie_5"),
     sep = "\\s*\\;\\s*",
     remove = TRUE,
@@ -73,7 +77,7 @@ interim_data <-
     extra = "drop"
   ) |>
   tidyr::separate(
-    Materiaal_Vast,
+    materiaal_vast,
     into = c("p_materiaal_vast_1", "p_materiaal_vast_2", "p_materiaal_vast_3", "p_materiaal_vast_4", "p_materiaal_vast_5"),
     sep = "\\s*\\;\\s*",
     remove = TRUE,
@@ -81,7 +85,7 @@ interim_data <-
     extra = "drop"
   ) |>
   tidyr::separate(
-    Materiaal_Consumptie,
+    materiaal_consumptie,
     into = c("p_materiaal_consumptie_1", "p_materiaal_consumptie_2", "p_materiaal_consumptie_3", "p_materiaal_consumptie_4", "p_materiaal_consumptie_5", "p_materiaal_consumptie_6"),
     sep = "\\s*\\;\\s*",
     remove = TRUE,
