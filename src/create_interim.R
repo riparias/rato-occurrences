@@ -3,6 +3,7 @@ library(dplyr)
 library(stringr)
 library(tidyr)
 library(janitor)
+library(sf)
 library(readr)
 library(here)
 
@@ -12,7 +13,9 @@ raw_data <- ratatouille::ratatouille(source = "rato")
 # PROCESS TO INTERIM DATA
 
 # Exclude "Werken"
-interim_data <- dplyr::filter(raw_data, Domein != "Werken")
+interim_data <-
+  raw_data |>
+  dplyr::filter(Domein != "Werken")
 
 # Select relevant columns and clean their names
 relevant_cols <- c(
@@ -33,6 +36,21 @@ interim_data <-
   interim_data |>
   dplyr::select(dplyr::all_of(relevant_cols)) |>
   janitor::clean_names()
+
+# Transform Lambert coordinates to WGS84
+coordinates <-
+  interim_data |>
+  sf::st_as_sf(coords = c("x", "y"), crs = 31370) |>
+  sf::st_transform(crs = 4326) |>
+  sf::st_coordinates() |>
+  dplyr::as_tibble() |>
+  dplyr::rename(
+    latitude = Y,
+    longitude = X
+  )
+interim_data <-
+  dplyr::bind_cols(interim_data, coordinates) |>
+  dplyr::relocate(latitude, longitude, .after = y)
 
 # Clean values
 str_clean <- function(string) {
@@ -55,6 +73,17 @@ interim_data <-
     materiaal_consumptie = str_clean(materiaal_consumptie),
     global_id = stringr::str_remove_all(global_id, "\\{|\\}")
   )
+
+# Filter out no-relevant species
+exclude_species <- c(
+  "Duiven",
+  "Kippen",
+  "Neerhofdier(en)",
+  "Zwerfkatten"
+)
+interim_data <-
+  interim_data |>
+  dplyr::filter(!soort %in% exclude_species)
 
 # Process property columns (Waarneming, Actie, Materiaal Vast, Materiaal Consumptie)
 interim_data <-
@@ -109,15 +138,6 @@ interim_data <-
     convert = TRUE,
     extra = "drop"
   )
-
-# Filter out no-relevant species
-exclude_species <- c(
-  "Duiven",
-  "Kippen",
-  "Neerhofdier(en)",
-  "Zwerfkatten"
-)
-interim_data <- dplyr::filter(interim_data, !Soort %in% exclude_species)
 
 # WRITE INTERIM DATA
 readr::write_csv(interim_data, here::here("data", "interim", "interim.csv"), na = "")
