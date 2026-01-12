@@ -21,6 +21,7 @@ interim_data <-
 relevant_cols <- c(
   "Dossier_ID",
   "Soort",
+  "GBIF_Code",
   "Gemeente",
   "X",
   "Y",
@@ -74,16 +75,70 @@ interim_data <-
     global_id = stringr::str_remove_all(global_id, "\\{|\\}")
   )
 
-# Filter out no-relevant species
-exclude_species <- c(
-  "Duiven",
-  "Kippen",
-  "Neerhofdier(en)",
-  "Zwerfkatten"
-)
+# Add scientific names based on soort (gbif_code not reliable)
 interim_data <-
   interim_data |>
-  dplyr::filter(!soort %in% exclude_species)
+  dplyr::mutate(
+    scientific_name = dplyr::case_match(
+      soort,
+      "Amerikaanse Nerts" ~ "Neovison vison",
+      "Amerikaanse Stierkikker" ~ "Lithobates catesbeianus",
+      "Andere (soort vermelden)" ~ NA_character_,
+      "Andere (soort vermelden): Eend" ~ NA_character_,
+      "Andere (soort vermelden): Kraaien" ~ NA_character_,
+      "Aziatische hoornaar" ~ "Vespa velutina",
+      "Aziatische hoornaar actie" ~ "Vespa velutina",
+      "Bever" ~ "Castor fiber",
+      "Beverrat" ~ "Myocastor coypus",
+      "Boerengans" ~ "Anser anser f. domesticus",
+      "Brandgans" ~ "Branta leucopsis",
+      "Bruine rat" ~ "Rattus norvegicus",
+      "Bruine rat bak/buis" ~ "Rattus norvegicus",
+      "Canadese Gans" ~ "Branta canadensis",
+      "Duiven" ~ NA_character_,
+      "Exotische Eekhoorn" ~ NA_character_,
+      "Ganzenactie" ~ NA_character_,
+      "gedomesticeerde gans" ~ "Anser anser f. domesticus",
+      "Grauwe Gans" ~ "Anser anser",
+      "Grote Waternavel" ~ "Hydrocotyle ranunculoides",
+      "Halsbandparkiet" ~ "Psittacula krameri",
+      "Japanse Duizendknoop" ~ "Fallopia japonica",
+      "Kippen" ~ NA_character_,
+      "Konijnen" ~ "Oryctolagus cuniculus",
+      "Leidse Plant" ~ "Saururus cernuus",
+      "Lettersierschildpad" ~ "Trachemys scripta",
+      "Mantsjoerese wilde rijst" ~ "Zizania latifolia",
+      "Mollen" ~ "Talpa europaea",
+      "Muizen" ~ "Muridae",
+      "Muskusrat" ~ "Ondatra zibethicus",
+      "Neerhofdier(en)" ~ NA_character_,
+      "Nijlgans" ~ "Alopochen aegyptiaca",
+      "Parelvederkruid" ~ "Myriophyllum aquaticum",
+      "Reuzenbalsemien" ~ "Impatiens glandulifera",
+      "Reuzenberenklauw" ~ "Heracleum mantegazzianum",
+      "Rivierkreeft" ~ NA_character_,
+      "Steenmarter" ~ "Martes foina",
+      "Watercrassula" ~ "Crassula helmsii",
+      "Watersla" ~ "Pistia stratiotes",
+      "Waterteunisbloem" ~ "Ludwigia",
+      "Zwarte rat" ~ "Rattus rattus",
+      "Zwerfkatten" ~ "Felis catus"
+    )
+  ) |>
+  dplyr::relocate(scientific_name, .after = "soort")
+
+  # Filter out no-relevant species
+  exclude_species <- c(
+    "Duiven",
+    "Kippen",
+    "Neerhofdier(en)",
+    "Zwerfkatten"
+  )
+  interim_data <-
+    interim_data |>
+    dplyr::filter(!soort %in% exclude_species)
+
+
 
 # Process property columns (Waarneming, Actie, Materiaal Vast, Materiaal Consumptie)
 interim_data <-
