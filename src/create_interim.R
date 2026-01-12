@@ -30,7 +30,7 @@ relevant_cols <- c(
 )
 interim_data <- dplyr::select(interim_data, dplyr::all_of(relevant_cols))
 
-# Create function to clean ; in string values
+# Clean string values
 str_clean <- function(string) {
   string <-
     # Trim + use single spaces
@@ -38,21 +38,23 @@ str_clean <- function(string) {
     # Remove space after ; separator
     stringr::str_replace_all("; ", ";") |>
     # Remove last ;
-    stringr::str_remove(";$")
+    stringr::str_remove("[;|:]$")
   return(string)
 }
-
-# Process property columns (Waarneming, Actie, Materiaal Vast, Materiaal Consumptie)
 interim_data <-
   interim_data |>
-  # Remove stray spaces, semicolons, etc.
   dplyr::mutate(
+    Soort = str_clean(Soort),
     Waarneming = str_clean(Waarneming),
     Actie = str_clean(Actie),
     Materiaal_Vast = str_clean(Materiaal_Vast),
     Materiaal_Consumptie = str_clean(Materiaal_Consumptie),
     GlobalID = stringr::str_remove_all(GlobalID, "\\{|\\}")
-  ) |>
+  )
+
+# Process property columns (Waarneming, Actie, Materiaal Vast, Materiaal Consumptie)
+interim_data <-
+  interim_data |>
   # Separate values of property columns into columns
   tidyr::separate(
     Waarneming,
@@ -108,9 +110,7 @@ interim_data <-
 exclude_species <- c(
   "Duiven",
   "Kippen",
-  "Kippen:",
   "Neerhofdier(en)",
-  "Neerhofdier(en):",
   "Zwerfkatten"
 )
 interim_data <- dplyr::filter(interim_data, !Soort %in% exclude_species)
