@@ -184,16 +184,16 @@ interim_data <-
   ) |>
   dplyr::relocate(scientific_name, .after = "soort")
 
-# 7. FILTER OUT NON-RELEVANT SPECIES
-exclude_species <- c(
-  "Duiven",
-  "Kippen",
-  "Neerhofdier(en)",
-  "Zwerfkatten"
+# 7. SELECT RELEVANT SPECIES TO PUBLISH
+select_species <- c(
+  "Rattus norvegicus",
+  "Rattus rattus",
+  "Myocastor coypus",
+  "Ondatra zibethicus"
 )
 interim_data <-
   interim_data |>
-  dplyr::filter(!soort %in% exclude_species)
+  dplyr::filter(scientific_name %in% select_species)
 
 # == WRITE DATA ==
 readr::write_csv(interim_data, here::here("data", "interim", "interim.csv"), na = "")
