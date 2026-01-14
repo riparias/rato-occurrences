@@ -194,5 +194,5 @@ interim_data <-
     extra = "drop"
   )
 
-# WRITE INTERIM DATA
+# Write data
 readr::write_csv(interim_data, here::here("data", "interim", "interim.csv"), na = "")
