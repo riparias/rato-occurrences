@@ -7,17 +7,17 @@ library(sf)
 library(readr)
 library(here)
 
-# GET LIVE DATA
+# == GET LIVE DATA ==
 raw_data <- ratatouille::ratatouille(source = "rato")
 
-# PROCESS TO INTERIM DATA
+# == PROCESS DATA ==
 
-# Exclude "Werken"
+# 1. EXCLUDE "Werken"
 interim_data <-
   raw_data |>
   dplyr::filter(Domein != "Werken")
 
-# Select relevant columns and clean their names
+# 2. SELECT COLUMNS
 relevant_cols <- c(
   "Dossier_ID",
   "Soort",
@@ -36,9 +36,9 @@ relevant_cols <- c(
 interim_data <-
   interim_data |>
   dplyr::select(dplyr::all_of(relevant_cols)) |>
-  janitor::clean_names()
+  janitor::clean_names() # Convert to snake_case
 
-# Transform Lambert coordinates to WGS84
+# 3. TRANSFORM LAMBERT COORDINATES
 coordinates <-
   interim_data |>
   sf::st_as_sf(coords = c("x", "y"), crs = 31370) |>
@@ -46,14 +46,14 @@ coordinates <-
   sf::st_coordinates() |>
   dplyr::as_tibble() |>
   dplyr::rename(
-    latitude = x,
-    longitude = y
+    latitude = X,
+    longitude = Y
   )
 interim_data <-
   dplyr::bind_cols(interim_data, coordinates) |>
   dplyr::relocate(latitude, longitude, .after = y)
 
-# Clean values
+# 4. TRIM VALUES
 str_clean <- function(string) {
   string <-
     # Trim + use single spaces
@@ -75,72 +75,9 @@ interim_data <-
     global_id = stringr::str_remove_all(global_id, "\\{|\\}")
   )
 
-# Add scientific names based on soort (gbif_code not reliable)
-interim_data <-
-  interim_data |>
-  dplyr::mutate(
-    scientific_name = dplyr::case_match(
-      soort,
-      "Amerikaanse Nerts" ~ "Neovison vison",
-      "Amerikaanse Stierkikker" ~ "Lithobates catesbeianus",
-      "Andere (soort vermelden)" ~ NA_character_,
-      "Andere (soort vermelden): Eend" ~ NA_character_,
-      "Andere (soort vermelden): Kraaien" ~ NA_character_,
-      "Aziatische hoornaar" ~ "Vespa velutina",
-      "Aziatische hoornaar actie" ~ "Vespa velutina",
-      "Bever" ~ "Castor fiber",
-      "Beverrat" ~ "Myocastor coypus",
-      "Boerengans" ~ "Anser anser f. domesticus",
-      "Brandgans" ~ "Branta leucopsis",
-      "Bruine rat" ~ "Rattus norvegicus",
-      "Bruine rat bak/buis" ~ "Rattus norvegicus",
-      "Canadese Gans" ~ "Branta canadensis",
-      "Duiven" ~ NA_character_,
-      "Exotische Eekhoorn" ~ NA_character_,
-      "Ganzenactie" ~ NA_character_,
-      "gedomesticeerde gans" ~ "Anser anser f. domesticus",
-      "Grauwe Gans" ~ "Anser anser",
-      "Grote Waternavel" ~ "Hydrocotyle ranunculoides",
-      "Halsbandparkiet" ~ "Psittacula krameri",
-      "Japanse Duizendknoop" ~ "Fallopia japonica",
-      "Kippen" ~ NA_character_,
-      "Konijnen" ~ "Oryctolagus cuniculus",
-      "Leidse Plant" ~ "Saururus cernuus",
-      "Lettersierschildpad" ~ "Trachemys scripta",
-      "Mantsjoerese wilde rijst" ~ "Zizania latifolia",
-      "Mollen" ~ "Talpa europaea",
-      "Muizen" ~ "Muridae",
-      "Muskusrat" ~ "Ondatra zibethicus",
-      "Neerhofdier(en)" ~ NA_character_,
-      "Nijlgans" ~ "Alopochen aegyptiaca",
-      "Parelvederkruid" ~ "Myriophyllum aquaticum",
-      "Reuzenbalsemien" ~ "Impatiens glandulifera",
-      "Reuzenberenklauw" ~ "Heracleum mantegazzianum",
-      "Rivierkreeft" ~ NA_character_,
-      "Steenmarter" ~ "Martes foina",
-      "Watercrassula" ~ "Crassula helmsii",
-      "Watersla" ~ "Pistia stratiotes",
-      "Waterteunisbloem" ~ "Ludwigia",
-      "Zwarte rat" ~ "Rattus rattus",
-      "Zwerfkatten" ~ "Felis catus"
-    )
-  ) |>
-  dplyr::relocate(scientific_name, .after = "soort")
+# 5. PROCESS PROPERTY COLUMNS
 
-  # Filter out no-relevant species
-  exclude_species <- c(
-    "Duiven",
-    "Kippen",
-    "Neerhofdier(en)",
-    "Zwerfkatten"
-  )
-  interim_data <-
-    interim_data |>
-    dplyr::filter(!soort %in% exclude_species)
-
-
-
-# Process property columns (Waarneming, Actie, Materiaal Vast, Materiaal Consumptie)
+# These columns are: Waarneming, Actie, Materiaal Vast, Materiaal Consumptie
 interim_data <-
   interim_data |>
   # Separate values of property columns into columns
@@ -194,5 +131,69 @@ interim_data <-
     extra = "drop"
   )
 
-# Write data
+# 6. ADD SCIENTIFIC NAME
+interim_data <-
+  interim_data |>
+  dplyr::mutate(
+    scientific_name = dplyr::case_match(
+      # We match on "soort" since "gbif_code" is not reliable and can differ for same "soort"
+      soort,
+      "Amerikaanse Nerts" ~ "Neovison vison",
+      "Amerikaanse Stierkikker" ~ "Lithobates catesbeianus",
+      "Andere (soort vermelden)" ~ NA_character_,
+      "Andere (soort vermelden): Eend" ~ NA_character_,
+      "Andere (soort vermelden): Kraaien" ~ NA_character_,
+      "Aziatische hoornaar" ~ "Vespa velutina",
+      "Aziatische hoornaar actie" ~ "Vespa velutina",
+      "Bever" ~ "Castor fiber",
+      "Beverrat" ~ "Myocastor coypus",
+      "Boerengans" ~ "Anser anser f. domesticus",
+      "Brandgans" ~ "Branta leucopsis",
+      "Bruine rat" ~ "Rattus norvegicus",
+      "Bruine rat bak/buis" ~ "Rattus norvegicus",
+      "Canadese Gans" ~ "Branta canadensis",
+      "Duiven" ~ NA_character_,
+      "Exotische Eekhoorn" ~ NA_character_,
+      "Ganzenactie" ~ NA_character_,
+      "gedomesticeerde gans" ~ "Anser anser f. domesticus",
+      "Grauwe Gans" ~ "Anser anser",
+      "Grote Waternavel" ~ "Hydrocotyle ranunculoides",
+      "Halsbandparkiet" ~ "Psittacula krameri",
+      "Japanse Duizendknoop" ~ "Fallopia japonica",
+      "Kippen" ~ NA_character_,
+      "Konijnen" ~ "Oryctolagus cuniculus",
+      "Leidse Plant" ~ "Saururus cernuus",
+      "Lettersierschildpad" ~ "Trachemys scripta",
+      "Mantsjoerese wilde rijst" ~ "Zizania latifolia",
+      "Mollen" ~ "Talpa europaea",
+      "Muizen" ~ "Muridae",
+      "Muskusrat" ~ "Ondatra zibethicus",
+      "Neerhofdier(en)" ~ NA_character_,
+      "Nijlgans" ~ "Alopochen aegyptiaca",
+      "Parelvederkruid" ~ "Myriophyllum aquaticum",
+      "Reuzenbalsemien" ~ "Impatiens glandulifera",
+      "Reuzenberenklauw" ~ "Heracleum mantegazzianum",
+      "Rivierkreeft" ~ NA_character_,
+      "Steenmarter" ~ "Martes foina",
+      "Watercrassula" ~ "Crassula helmsii",
+      "Watersla" ~ "Pistia stratiotes",
+      "Waterteunisbloem" ~ "Ludwigia",
+      "Zwarte rat" ~ "Rattus rattus",
+      "Zwerfkatten" ~ "Felis catus"
+    )
+  ) |>
+  dplyr::relocate(scientific_name, .after = "soort")
+
+# 7. FILTER OUT NON-RELEVANT SPECIES
+exclude_species <- c(
+  "Duiven",
+  "Kippen",
+  "Neerhofdier(en)",
+  "Zwerfkatten"
+)
+interim_data <-
+  interim_data |>
+  dplyr::filter(!soort %in% exclude_species)
+
+# == WRITE DATA ==
 readr::write_csv(interim_data, here::here("data", "interim", "interim.csv"), na = "")
