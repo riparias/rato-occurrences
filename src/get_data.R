@@ -38,7 +38,7 @@ interim_data <-
   dplyr::select(dplyr::all_of(relevant_cols)) |>
   janitor::clean_names() # Convert to snake_case
 
-# 3. TRANSFORM LAMBERT COORDINATES
+# 3. CONVERT LAMBERT COORDINATES
 coordinates <-
   interim_data |>
   sf::st_as_sf(coords = c("x", "y"), crs = 31370) |>
@@ -53,7 +53,22 @@ interim_data <-
   dplyr::bind_cols(interim_data, coordinates) |>
   dplyr::relocate(latitude, longitude, .after = y)
 
-# 4. TRIM VALUES
+# 4. ROUND COORDINATES
+# Avoids git diff noise for small changes
+interim_data <-
+  interim_data |>
+  # Round lambert to 1 meter
+  dplyr::mutate(
+    x = round(x),
+    y = round(y)
+  ) |>
+  # Round lat/lon to 5 decimals
+  dplyr::mutate(
+    latitude = round(latitude, 5),
+    longitude = round(longitude, 5)
+  )
+
+# 5. TRIM VALUES
 str_clean <- function(string) {
   string <-
     # Trim + use single spaces
@@ -75,7 +90,7 @@ interim_data <-
     global_id = stringr::str_remove_all(global_id, "\\{|\\}")
   )
 
-# 5. PROCESS PROPERTY COLUMNS
+# 6. PROCESS PROPERTY COLUMNS
 
 # These columns are: Waarneming, Actie, Materiaal Vast, Materiaal Consumptie
 interim_data <-
@@ -131,7 +146,7 @@ interim_data <-
     extra = "drop"
   )
 
-# 6. ADD SCIENTIFIC NAME
+# 7. ADD SCIENTIFIC NAME
 interim_data <-
   interim_data |>
   dplyr::mutate(
@@ -184,7 +199,7 @@ interim_data <-
   ) |>
   dplyr::relocate(scientific_name, .after = "soort")
 
-# 7. SELECT RELEVANT SPECIES TO PUBLISH
+# 8. SELECT RELEVANT SPECIES TO PUBLISH
 select_species <- c(
   "Rattus norvegicus",
   "Rattus rattus",
