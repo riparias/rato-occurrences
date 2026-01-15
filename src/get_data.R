@@ -21,7 +21,6 @@ interim_data <-
 relevant_cols <- c(
   "Dossier_ID",
   "Soort",
-  "GBIF_Code",
   "Gemeente",
   "X",
   "Y",
@@ -54,7 +53,6 @@ interim_data <-
   dplyr::relocate(latitude, longitude, .after = y)
 
 # 4. ROUND COORDINATES
-# Avoids git diff noise for small changes
 interim_data <-
   interim_data |>
   # Round lambert to 1 meter
