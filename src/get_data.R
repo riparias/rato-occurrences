@@ -149,7 +149,7 @@ interim_data <-
   interim_data |>
   dplyr::arrange(
     dossier_id,
-    objectid,
+    laatst_bewerkt_datum,
     p_field
   )
 
