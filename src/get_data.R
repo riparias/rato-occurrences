@@ -7,17 +7,18 @@ library(sf)
 library(readr)
 library(here)
 
-# == GET LIVE DATA ==
+# GET LIVE DATA
+
 raw_data <- ratatouille::ratatouille(source = "rato")
 
-# == PROCESS DATA ==
+# SELECT DATA FOR ANIMALS & PLANTS
 
-# 1. EXCLUDE "Werken"
 interim_data <-
   raw_data |>
-  dplyr::filter(Domein != "Werken")
+  dplyr::filter(Domein %in% c("Dier", "Plant")
 
-# 2. SELECT COLUMNS
+# SELECT RELEVANT COLUMNS
+
 relevant_cols <- c(
   "Dossier_ID",
   "Soort",
@@ -37,7 +38,9 @@ interim_data <-
   dplyr::select(dplyr::all_of(relevant_cols)) |>
   janitor::clean_names() # Convert to snake_case
 
-# 3. CONVERT LAMBERT COORDINATES
+# CONVERT COORDINATES
+
+# Convert Lambert UTM to latitude & longitude
 coordinates <-
   interim_data |>
   sf::st_as_sf(coords = c("x", "y"), crs = 31370) |>
@@ -52,10 +55,10 @@ interim_data <-
   dplyr::bind_cols(interim_data, coordinates) |>
   dplyr::relocate(latitude, longitude, .after = y)
 
-# 4. ROUND COORDINATES
+# Round coordinates
 interim_data <-
   interim_data |>
-  # Round lambert to 1 meter
+  # Round UTM to 1m
   dplyr::mutate(
     x = round(x),
     y = round(y)
@@ -66,7 +69,8 @@ interim_data <-
     longitude = round(longitude, 5)
   )
 
-# 5. TRIM VALUES
+# TRIM VALUES
+
 str_clean <- function(string) {
   string <-
     # Trim + use single spaces
@@ -88,7 +92,7 @@ interim_data <-
     global_id = stringr::str_remove_all(global_id, "\\{|\\}")
   )
 
-# 6. PROCESS PROPERTY COLUMNS
+# CONVERT PROPERTY COLUMNS TO ROWS
 
 # These columns are: Waarneming, Actie, Materiaal Vast, Materiaal Consumptie
 interim_data <-
@@ -144,7 +148,8 @@ interim_data <-
     extra = "drop"
   )
 
-# 7. ORDER DATA
+# ORDER DATA
+
 interim_data <-
   interim_data |>
   dplyr::arrange(
@@ -153,7 +158,8 @@ interim_data <-
     p_field
   )
 
-# 8. ADD SCIENTIFIC NAME
+# ADD SCIENTIFIC NAME
+
 interim_data <-
   interim_data |>
   dplyr::mutate(
@@ -206,7 +212,8 @@ interim_data <-
   ) |>
   dplyr::relocate(scientific_name, .after = "soort")
 
-# 9. SELECT RELEVANT SPECIES TO PUBLISH
+# SELECT RELEVANT SPECIES TO PUBLISH
+
 select_species <- c(
   "Rattus norvegicus",
   "Rattus rattus",
@@ -217,5 +224,6 @@ interim_data <-
   interim_data |>
   dplyr::filter(scientific_name %in% select_species)
 
-# == WRITE DATA ==
+# WRITE DATA
+
 readr::write_csv(interim_data, here::here("data", "interim", "interim.csv"), na = "")
