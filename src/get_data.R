@@ -146,7 +146,16 @@ interim_data <-
     extra = "drop"
   )
 
-# 7. ADD SCIENTIFIC NAME
+# 7. ORDER DATA
+interim_data <-
+  interim_data |>
+  dplyr::arrange(
+    dossier_id,
+    objectid,
+    p_field
+  )
+
+# 8. ADD SCIENTIFIC NAME
 interim_data <-
   interim_data |>
   dplyr::mutate(
@@ -199,7 +208,7 @@ interim_data <-
   ) |>
   dplyr::relocate(scientific_name, .after = "soort")
 
-# 8. SELECT RELEVANT SPECIES TO PUBLISH
+# 9. SELECT RELEVANT SPECIES TO PUBLISH
 select_species <- c(
   "Rattus norvegicus",
   "Rattus rattus",
