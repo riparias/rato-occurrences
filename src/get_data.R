@@ -8,17 +8,14 @@ library(readr)
 library(here)
 
 # GET LIVE DATA
-
 raw_data <- ratatouille::ratatouille(source = "rato")
 
 # SELECT DATA FOR ANIMALS & PLANTS
-
 interim_data <-
   raw_data |>
-  dplyr::filter(Domein %in% c("Dier", "Plant")
+  dplyr::filter(Domein %in% c("Dier", "Plant"))
 
 # SELECT RELEVANT COLUMNS
-
 relevant_cols <- c(
   "Dossier_ID",
   "Soort",
@@ -39,7 +36,6 @@ interim_data <-
   janitor::clean_names() # Convert to snake_case
 
 # CONVERT COORDINATES
-
 # Convert Lambert UTM to latitude & longitude
 coordinates <-
   interim_data |>
@@ -70,7 +66,6 @@ interim_data <-
   )
 
 # TRIM VALUES
-
 str_clean <- function(string) {
   string <-
     # Trim + use single spaces
@@ -93,7 +88,6 @@ interim_data <-
   )
 
 # CONVERT PROPERTY COLUMNS TO ROWS
-
 # These columns are: Waarneming, Actie, Materiaal Vast, Materiaal Consumptie
 interim_data <-
   interim_data |>
@@ -149,7 +143,6 @@ interim_data <-
   )
 
 # ORDER DATA
-
 interim_data <-
   interim_data |>
   dplyr::arrange(
@@ -158,24 +151,24 @@ interim_data <-
     p_field
   )
 
-# ADD SCIENTIFIC NAME
-
+# SELECT SPECIES
+# We only set scientific names for the species we want to publish
+# We match on "soort" since "gbif_code" is not reliable and can differ for the same "soort"
 interim_data <-
   interim_data |>
   dplyr::mutate(
     scientific_name = dplyr::case_match(
-      # We match on "soort" since "gbif_code" is not reliable and can differ for same "soort"
       soort,
       "Amerikaanse Nerts" ~ "Neovison vison",
       "Amerikaanse Stierkikker" ~ "Lithobates catesbeianus",
       "Andere (soort vermelden)" ~ NA_character_,
       "Andere (soort vermelden): Eend" ~ NA_character_,
       "Andere (soort vermelden): Kraaien" ~ NA_character_,
-      "Aziatische hoornaar" ~ "Vespa velutina",
-      "Aziatische hoornaar actie" ~ "Vespa velutina",
+      "Aziatische hoornaar" ~ NA_character_, # Vespa velutina via Vespa-Watch
+      "Aziatische hoornaar actie" ~ NA_character_, # Vespa velutina via Vespa-Watch
       "Bever" ~ "Castor fiber",
       "Beverrat" ~ "Myocastor coypus",
-      "Boerengans" ~ "Anser anser f. domesticus",
+      "Boerengans" ~ NA_character_, # Anser anser f. domesticus
       "Brandgans" ~ "Branta leucopsis",
       "Bruine rat" ~ "Rattus norvegicus",
       "Bruine rat bak/buis" ~ "Rattus norvegicus",
@@ -183,18 +176,18 @@ interim_data <-
       "Duiven" ~ NA_character_,
       "Exotische Eekhoorn" ~ NA_character_,
       "Ganzenactie" ~ NA_character_,
-      "gedomesticeerde gans" ~ "Anser anser f. domesticus",
+      "gedomesticeerde gans" ~ NA_character_, # Anser anser f. domesticus
       "Grauwe Gans" ~ "Anser anser",
       "Grote Waternavel" ~ "Hydrocotyle ranunculoides",
       "Halsbandparkiet" ~ "Psittacula krameri",
-      "Japanse Duizendknoop" ~ "Fallopia japonica",
+      "Japanse Duizendknoop" ~ "Reynoutria japonica",
       "Kippen" ~ NA_character_,
       "Konijnen" ~ "Oryctolagus cuniculus",
       "Leidse Plant" ~ "Saururus cernuus",
       "Lettersierschildpad" ~ "Trachemys scripta",
       "Mantsjoerese wilde rijst" ~ "Zizania latifolia",
       "Mollen" ~ "Talpa europaea",
-      "Muizen" ~ "Muridae",
+      "Muizen" ~ NA_character_,
       "Muskusrat" ~ "Ondatra zibethicus",
       "Neerhofdier(en)" ~ NA_character_,
       "Nijlgans" ~ "Alopochen aegyptiaca",
@@ -205,25 +198,13 @@ interim_data <-
       "Steenmarter" ~ "Martes foina",
       "Watercrassula" ~ "Crassula helmsii",
       "Watersla" ~ "Pistia stratiotes",
-      "Waterteunisbloem" ~ "Ludwigia",
+      "Waterteunisbloem" ~ "Ludwigia", # Species may be identified via gbif_code, but not sure if reliable
       "Zwarte rat" ~ "Rattus rattus",
-      "Zwerfkatten" ~ "Felis catus"
+      "Zwerfkatten" ~ NA_character_ # Felis catus
     )
   ) |>
-  dplyr::relocate(scientific_name, .after = "soort")
-
-# SELECT RELEVANT SPECIES TO PUBLISH
-
-select_species <- c(
-  "Rattus norvegicus",
-  "Rattus rattus",
-  "Myocastor coypus",
-  "Ondatra zibethicus"
-)
-interim_data <-
-  interim_data |>
-  dplyr::filter(scientific_name %in% select_species)
+  dplyr::relocate(scientific_name, .after = "soort") |>
+  dplyr::filter(!is.na(scientific_name))
 
 # WRITE DATA
-
 readr::write_csv(interim_data, here::here("data", "interim", "interim.csv"), na = "")
