@@ -1,19 +1,18 @@
 library(ratatouille)
 library(dplyr)
 library(stringr)
-library(tidyr)
 library(janitor)
 library(sf)
 library(readr)
 library(here)
 
 # GET LIVE DATA
-raw_data <- ratatouille::ratatouille(source = "rato")
+## raw_data <- ratatouille(source = "rato")
 
 # SELECT DATA FOR ANIMALS & PLANTS
 interim_data <-
   raw_data |>
-  dplyr::filter(Domein %in% c("Dier", "Plant"))
+  filter(Domein %in% c("Dier", "Plant"))
 
 # SELECT RELEVANT COLUMNS
 relevant_cols <- c(
@@ -31,7 +30,7 @@ relevant_cols <- c(
 )
 interim_data <-
   interim_data |>
-  dplyr::select(dplyr::all_of(relevant_cols)) |>
+  select(all_of(relevant_cols)) |>
   janitor::clean_names() # Convert to snake_case
 
 # CONVERT COORDINATES
@@ -41,25 +40,25 @@ coordinates <-
   sf::st_as_sf(coords = c("x", "y"), crs = 31370) |>
   sf::st_transform(crs = 4326) |>
   sf::st_coordinates() |>
-  dplyr::as_tibble() |>
-  dplyr::rename(
+  as_tibble() |>
+  rename(
     latitude = X,
     longitude = Y
   )
 interim_data <-
-  dplyr::bind_cols(interim_data, coordinates) |>
-  dplyr::relocate(latitude, longitude, .after = y)
+  bind_cols(interim_data, coordinates) |>
+  relocate(latitude, longitude, .after = y)
 
 # Round coordinates
 interim_data <-
   interim_data |>
   # Round UTM to 1m
-  dplyr::mutate(
+  mutate(
     x = round(x),
     y = round(y)
   ) |>
   # Round lat/lon to 5 decimals
-  dplyr::mutate(
+  mutate(
     latitude = round(latitude, 5),
     longitude = round(longitude, 5)
   )
@@ -68,21 +67,21 @@ interim_data <-
 str_clean <- function(string) {
   string <-
     # Trim + use single spaces
-    stringr::str_squish(string) |>
+    str_squish(string) |>
     # Remove space after ; separator
-    stringr::str_replace_all("; ", ";") |>
+    str_replace_all("; ", ";") |>
     # Remove last ;
-    stringr::str_remove("[;|:]$")
+    str_remove("[;|:]$")
   return(string)
 }
 interim_data <-
   interim_data |>
-  dplyr::mutate(
+  mutate(
     soort = str_clean(soort),
     waarneming = str_clean(waarneming),
     actie = str_clean(actie),
     materiaal_vast = str_clean(materiaal_vast),
-    global_id = stringr::str_remove_all(global_id, "\\{|\\}")
+    global_id = str_remove_all(global_id, "\\{|\\}")
   )
 
 # ADD CONFIRMED OBSERVATION AND CATCH
@@ -114,20 +113,20 @@ interim_data <-
 # ORDER DATA
 interim_data <-
   interim_data |>
-  dplyr::arrange(
+  arrange(
     dossier_id,
     laatst_bewerkt_datum
   )
 
 # SELECT SPECIES
 # Join with species reference data and filter on species we want to include
-species <- readr::read_csv(here::here("data", "reference", "species.csv"))
+species <- read_csv(here("data", "reference", "species.csv"))
 interim_data <-
   interim_data |>
-  dplyr::left_join(species, by = "soort") |>
-  dplyr::relocate(kingdom, scientific_name, taxon_rank, .after = "soort") |>
-  dplyr::filter(include) |>
-  dplyr::select(-include)
+  left_join(species, by = "soort") |>
+  relocate(kingdom, scientific_name, taxon_rank, .after = "soort") |>
+  filter(include) |>
+  select(-include)
 
 # WRITE DATA
-readr::write_csv(interim_data, here::here("data", "interim", "interim.csv"), na = "")
+write_csv(interim_data, here("data", "interim", "interim.csv"), na = "")
