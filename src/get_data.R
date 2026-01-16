@@ -147,64 +147,18 @@ interim_data <-
   interim_data |>
   dplyr::arrange(
     dossier_id,
-    laatst_bewerkt_datum,
-    p_field
+    laatst_bewerkt_datum
   )
 
 # SELECT SPECIES
-# We only set scientific names for the species we want to publish
-# We match on "soort" since "gbif_code" is not reliable and can differ for the same "soort"
+# Join with species reference data and filter on species we want to include
+species <- readr::read_csv(here::here("data", "reference", "species.csv"))
 interim_data <-
   interim_data |>
-  dplyr::mutate(
-    scientific_name = dplyr::case_match(
-      soort,
-      "Amerikaanse Nerts" ~ "Neovison vison",
-      "Amerikaanse Stierkikker" ~ "Lithobates catesbeianus",
-      "Andere (soort vermelden)" ~ NA_character_,
-      "Andere (soort vermelden): Eend" ~ NA_character_,
-      "Andere (soort vermelden): Kraaien" ~ NA_character_,
-      "Aziatische hoornaar" ~ NA_character_, # Vespa velutina via Vespa-Watch
-      "Aziatische hoornaar actie" ~ NA_character_, # Vespa velutina via Vespa-Watch
-      "Bever" ~ "Castor fiber",
-      "Beverrat" ~ "Myocastor coypus",
-      "Boerengans" ~ NA_character_, # Anser anser f. domesticus
-      "Brandgans" ~ "Branta leucopsis",
-      "Bruine rat" ~ "Rattus norvegicus",
-      "Bruine rat bak/buis" ~ "Rattus norvegicus",
-      "Canadese Gans" ~ "Branta canadensis",
-      "Duiven" ~ NA_character_,
-      "Exotische Eekhoorn" ~ NA_character_,
-      "Ganzenactie" ~ NA_character_,
-      "gedomesticeerde gans" ~ NA_character_, # Anser anser f. domesticus
-      "Grauwe Gans" ~ "Anser anser",
-      "Grote Waternavel" ~ "Hydrocotyle ranunculoides",
-      "Halsbandparkiet" ~ "Psittacula krameri",
-      "Japanse Duizendknoop" ~ "Reynoutria japonica",
-      "Kippen" ~ NA_character_,
-      "Konijnen" ~ "Oryctolagus cuniculus",
-      "Leidse Plant" ~ "Saururus cernuus",
-      "Lettersierschildpad" ~ "Trachemys scripta",
-      "Mantsjoerese wilde rijst" ~ "Zizania latifolia",
-      "Mollen" ~ "Talpa europaea",
-      "Muizen" ~ NA_character_,
-      "Muskusrat" ~ "Ondatra zibethicus",
-      "Neerhofdier(en)" ~ NA_character_,
-      "Nijlgans" ~ "Alopochen aegyptiaca",
-      "Parelvederkruid" ~ "Myriophyllum aquaticum",
-      "Reuzenbalsemien" ~ "Impatiens glandulifera",
-      "Reuzenberenklauw" ~ "Heracleum mantegazzianum",
-      "Rivierkreeft" ~ NA_character_,
-      "Steenmarter" ~ "Martes foina",
-      "Watercrassula" ~ "Crassula helmsii",
-      "Watersla" ~ "Pistia stratiotes",
-      "Waterteunisbloem" ~ "Ludwigia", # Species may be identified via gbif_code, but not sure if reliable
-      "Zwarte rat" ~ "Rattus rattus",
-      "Zwerfkatten" ~ NA_character_ # Felis catus
-    )
-  ) |>
-  dplyr::relocate(scientific_name, .after = "soort") |>
-  dplyr::filter(!is.na(scientific_name))
+  dplyr::left_join(species, by = "soort") |>
+  dplyr::relocate(kingdom, scientific_name, taxon_rank, .after = "soort") |>
+  dplyr::filter(include) |>
+  dplyr::select(-include)
 
 # WRITE DATA
 readr::write_csv(interim_data, here::here("data", "interim", "interim.csv"), na = "")
