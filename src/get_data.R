@@ -33,6 +33,16 @@ interim_data <-
   select(all_of(relevant_cols)) |>
   janitor::clean_names() # Convert to snake_case
 
+# SELECT SPECIES
+# Join with species reference data and filter on species we want to include
+species <- read_csv(here("data", "reference", "species.csv"))
+interim_data <-
+  interim_data |>
+  left_join(species, by = "soort") |>
+  relocate(kingdom, scientific_name, taxon_rank, .after = "soort") |>
+  filter(include) |>
+  select(-include)
+
 # CONVERT COORDINATES
 # Convert Lambert UTM to latitude & longitude
 coordinates <-
@@ -66,18 +76,14 @@ interim_data <-
 # TRIM VALUES
 str_clean <- function(string) {
   string <-
-    # Trim + use single spaces
-    str_squish(string) |>
-    # Remove space after ; separator
-    str_replace_all("; ", ";") |>
-    # Remove last ;
-    str_remove("[;|:]$")
+    str_squish(string) |> # Trim + use single spaces
+    str_replace_all("; ", ";") |> # Remove space after ; separator
+    str_remove(";$") # Remove last ;
   return(string)
 }
 interim_data <-
   interim_data |>
   mutate(
-    soort = str_clean(soort),
     waarneming = str_clean(waarneming),
     actie = str_clean(actie),
     materiaal_vast = str_clean(materiaal_vast),
@@ -117,16 +123,6 @@ interim_data <-
     dossier_id,
     laatst_bewerkt_datum
   )
-
-# SELECT SPECIES
-# Join with species reference data and filter on species we want to include
-species <- read_csv(here("data", "reference", "species.csv"))
-interim_data <-
-  interim_data |>
-  left_join(species, by = "soort") |>
-  relocate(kingdom, scientific_name, taxon_rank, .after = "soort") |>
-  filter(include) |>
-  select(-include)
 
 # WRITE DATA
 write_csv(interim_data, here("data", "interim", "interim.csv"), na = "")
