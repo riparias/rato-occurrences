@@ -90,7 +90,7 @@ interim_data <-
     global_id = str_remove_all(global_id, "\\{|\\}")
   )
 
-# ADD CONFIRMED OBSERVATION AND CATCH
+# ADD CONFIRMED OBSERVATION
 # This is based on specific "waarneming" or "actie" values
 interim_data <-
   interim_data |>
@@ -110,11 +110,28 @@ interim_data <-
     # Note on some values we do not include:
     # "Beverdam": does not imply animal was seen
     # "Nevenvangst": is not an observation of the main species
-  )) |>
+  ))
+
+# ADD CATCH
+interim_data <-
+  interim_data |>
   mutate(catch = case_when(
     confirmed_observation & str_detect(actie, "Gevangen") ~ TRUE,
     confirmed_observation & str_detect(actie, "Vangst") ~ TRUE,
   ))
+
+# TRANSLATE MATERIAL
+material <- read_csv(here("data", "reference", "material.csv"))
+mapped_material <- as.character(pull(material, mapped_value))
+names(mapped_material) <- pull(material, input_value)
+
+interim_data <-
+  interim_data |>
+  mutate(material = str_remove_all(materiaal_vast, " = [0-9]*")) |> # Remove numbers, in many cases they likely refer to dropdown value codes
+  mutate(material = str_replace_all(material, mapped_material)) |> # Map values
+  mutate(material = str_remove_all(material, "not_material")) |> # "Opvolging", "Verwenen", ...
+  mutate(material = str_clean(material)) |> # Remove last ;
+  mutate(material = str_replace_all(material, ";", " | ")) # Pipe separated
 
 # ORDER DATA
 interim_data <-
