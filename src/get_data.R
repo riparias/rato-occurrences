@@ -85,52 +85,31 @@ interim_data <-
     global_id = stringr::str_remove_all(global_id, "\\{|\\}")
   )
 
-# CONVERT PROPERTY COLUMNS TO ROWS
-# These columns are: waarneming, actie, materiaal_vast
+# ADD CONFIRMED OBSERVATION AND CATCH
+# This is based on specific "waarneming" or "actie" values
 interim_data <-
   interim_data |>
-  # Separate values of property columns into columns
-  tidyr::separate(
-    waarneming,
-    into = c("p_waarneming_1", "p_waarneming_2", "p_waarneming_3", "p_waarneming_4", "p_waarneming_5", "p_waarneming_6"),
-    sep = "\\s*\\;\\s*",
-    remove = TRUE,
-    convert = TRUE,
-    extra = "drop"
-  ) |>
-  tidyr::separate(
-    actie,
-    into = c("p_actie_1", "p_actie_2", "p_actie_3", "p_actie_4", "p_actie_5"),
-    sep = "\\s*\\;\\s*",
-    remove = TRUE,
-    convert = TRUE,
-    extra = "drop"
-  ) |>
-  tidyr::separate(
-    materiaal_vast,
-    into = c("p_materiaal_vast_1", "p_materiaal_vast_2", "p_materiaal_vast_3", "p_materiaal_vast_4", "p_materiaal_vast_5"),
-    sep = "\\s*\\;\\s*",
-    remove = TRUE,
-    convert = TRUE,
-    extra = "drop"
-  ) |>
-  # Convert property columns into rows
-  tidyr::pivot_longer(
-    cols = tidyr::starts_with("p_"),
-    values_to = "p_key_value",
-    names_to = "p_field",
-    values_drop_na = TRUE,
-    names_repair = "unique"
-  ) |>
-  dplyr::mutate(p_field = stringr::str_remove(p_field, "_\\d$")) |>
-  tidyr::separate(
-    p_key_value,
-    into = c("p_key", "p_value"),
-    sep = " = ",
-    remove = TRUE,
-    convert = TRUE,
-    extra = "drop"
-  )
+  mutate(confirmed_observation = case_when(
+    str_detect(waarneming, "Haard vastgesteld = [1-9]") ~ TRUE,
+    str_detect(waarneming, "Vastgesteld = [1-9]") ~ TRUE,
+    str_detect(waarneming, "Vastgesteld \\(aantal\\) = [1-9]") ~ TRUE,
+    str_detect(waarneming, "Vastgesteld \\(in m²\\) = [1-9]") ~ TRUE,
+    str_detect(actie, "Eieren geschud \\(aantal\\) = [1-9]") ~ TRUE,
+    str_detect(actie, "Gevangen = [1-9]") ~ TRUE,
+    str_detect(actie, "Gevangen juveniel \\(aantal\\) = [1-9]") ~ TRUE,
+    str_detect(actie, "Gevangen volwassenen \\(aantal\\) = [1-9]") ~ TRUE,
+    str_detect(actie, "Hoeveelheid = [1-9]") ~ TRUE,
+    str_detect(actie, "Vangst \\(aantal\\) = [1-9]") ~ TRUE,
+    str_detect(actie, "Vastgesteld = [1-9]") ~ TRUE,
+    str_detect(actie, "Verwijderd \\(aantal m²\\) = [1-9]") ~ TRUE
+    # Note on some values we do not include:
+    # "Beverdam": does not imply animal was seen
+    # "Nevenvangst": is not an observation of the main species
+  )) |>
+  mutate(catch = case_when(
+    confirmed_observation & str_detect(actie, "Gevangen") ~ TRUE,
+    confirmed_observation & str_detect(actie, "Vangst") ~ TRUE,
+  ))
 
 # ORDER DATA
 interim_data <-
