@@ -27,8 +27,7 @@ relevant_cols <- c(
   "Laatst_Bewerkt_Datum",
   "Waarneming",
   "Actie",
-  "Materiaal_Vast",
-  "Materiaal_Consumptie"
+  "Materiaal_Vast"
 )
 interim_data <-
   interim_data |>
@@ -83,12 +82,11 @@ interim_data <-
     waarneming = str_clean(waarneming),
     actie = str_clean(actie),
     materiaal_vast = str_clean(materiaal_vast),
-    materiaal_consumptie = str_clean(materiaal_consumptie),
     global_id = stringr::str_remove_all(global_id, "\\{|\\}")
   )
 
 # CONVERT PROPERTY COLUMNS TO ROWS
-# These columns are: Waarneming, Actie, Materiaal Vast, Materiaal Consumptie
+# These columns are: waarneming, actie, materiaal_vast
 interim_data <-
   interim_data |>
   # Separate values of property columns into columns
@@ -114,14 +112,6 @@ interim_data <-
     sep = "\\s*\\;\\s*",
     remove = TRUE,
     convert = TRUE,
-    extra = "drop"
-  ) |>
-  tidyr::separate(
-    materiaal_consumptie,
-    into = c("p_materiaal_consumptie_1", "p_materiaal_consumptie_2", "p_materiaal_consumptie_3", "p_materiaal_consumptie_4", "p_materiaal_consumptie_5", "p_materiaal_consumptie_6"),
-    sep = "\\s*\\;\\s*",
-    remove = TRUE,
-    convert = FALSE,
     extra = "drop"
   ) |>
   # Convert property columns into rows
