@@ -1,0 +1,43 @@
+soort,include,kingdom,scientific_name,taxon_rank
+Amerikaanse Nerts,TRUE,Animalia,Neovison vison,species
+Amerikaanse Stierkikker,TRUE,Animalia,Lithobates catesbeianus,species
+Andere (soort vermelden),FALSE,,,
+Andere (soort vermelden): Eend,FALSE,Animalia,,
+Andere (soort vermelden): Kraaien,FALSE,Animalia,Corvidae,family
+Aziatische hoornaar,FALSE,Animalia,Vespa velutina,species
+Aziatische hoornaar actie,FALSE,Animalia,Vespa velutina,species
+Bever,TRUE,Animalia,Castor fiber,species
+Beverrat,TRUE,Animalia,Myocastor coypus,species
+Boerengans,FALSE,Animalia,Anser anser f. domesticus,form
+Brandgans,TRUE,Animalia,Branta leucopsis,species
+Bruine rat,TRUE,Animalia,Rattus norvegicus,species
+Bruine rat bak/buis,TRUE,Animalia,Rattus norvegicus,species
+Canadese Gans,TRUE,Animalia,Branta canadensis,species
+Duiven,FALSE,Animalia,Columbidae,family
+Exotische Eekhoorn,FALSE,Animalia,,
+Ganzenactie,FALSE,Animalia,,
+gedomesticeerde gans,FALSE,Animalia,Anser anser f. domesticus,form
+Grauwe Gans,TRUE,Animalia,Anser anser,species
+Grote Waternavel,TRUE,Plantae,Hydrocotyle ranunculoides,species
+Halsbandparkiet,TRUE,Animalia,Psittacula krameri,species
+Japanse Duizendknoop,TRUE,Plantae,Reynoutria japonica,species
+Kippen,FALSE,Animalia,Gallus gallus domesticus,subspecies
+Konijnen,TRUE,Animalia,Oryctolagus cuniculus,species
+Leidse Plant,TRUE,Plantae,Saururus cernuus,species
+Lettersierschildpad,TRUE,Animalia,Trachemys scripta,species
+Mantsjoerese wilde rijst,TRUE,Plantae,Zizania latifolia,species
+Mollen,TRUE,Animalia,Talpa europaea,species
+Muizen,FALSE,Animalia,Muridae,family
+Muskusrat,TRUE,Animalia,Ondatra zibethicus,species
+Neerhofdier(en),FALSE,Animalia,,
+Nijlgans,TRUE,Animalia,Alopochen aegyptiaca,species
+Parelvederkruid,TRUE,Plantae,Myriophyllum aquaticum,species
+Reuzenbalsemien,TRUE,Plantae,Impatiens glandulifera,species
+Reuzenberenklauw,TRUE,Plantae,Heracleum mantegazzianum,species
+Rivierkreeft,FALSE,Animalia,,
+Steenmarter,TRUE,Animalia,Martes foina,species
+Watercrassula,TRUE,Plantae,Crassula helmsii,species
+Watersla,TRUE,Plantae,Pistia stratiotes,species
+Waterteunisbloem,TRUE,Plantae,Ludwigia,genus
+Zwarte rat,TRUE,Animalia,Rattus rattus,species
+Zwerfkatten,FALSE,Animalia,Felis catus,species
