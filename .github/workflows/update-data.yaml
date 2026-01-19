@@ -41,8 +41,9 @@ jobs:
           r-version: ${{ matrix.config.r }}
           http-user-agent: ${{ matrix.config.http-user-agent }}
 
-      # - name: Setup pandoc
-      #  uses: r-lib/actions/setup-pandoc@v2
+      - name: Setup pandoc
+      - uses: r-lib/actions/setup-pandoc@v2
+
 
       - name: Install R packages
         run: |
