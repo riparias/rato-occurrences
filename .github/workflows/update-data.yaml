@@ -47,14 +47,14 @@ jobs:
           cache: true
           needs: check
 
-      - name: Get data
-        env:
-          RATO_USER: ${{ secrets.RATO_USER }}
-          RATO_PWD: ${{ secrets.RATO_PWD }}
-          RATO_API_CAPACITY: 1500
-        run: |
-          source("src/get_data.R")
-        shell: Rscript {0}
+      # - name: Get data
+      #   env:
+      #     RATO_USER: ${{ secrets.RATO_USER }}
+      #     RATO_PWD: ${{ secrets.RATO_PWD }}
+      #     RATO_API_CAPACITY: 1500
+      #   run: |
+      #     source("src/get_data.R")
+      #   shell: Rscript {0}
 
       - name: Map data to Darwin Core
         env:

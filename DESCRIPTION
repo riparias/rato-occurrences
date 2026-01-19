@@ -24,7 +24,6 @@ Imports:
     httr2,
     magrittr,
     purrr,
-    ratatouille (>= 1.0.1),
     readr
 Suggests: 
     devtools,
