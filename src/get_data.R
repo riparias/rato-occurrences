@@ -7,7 +7,7 @@ library(readr)
 library(here)
 
 # GET LIVE DATA
-## raw_data <- ratatouille(source = "rato")
+raw_data <- ratatouille(source = "rato")
 
 # SELECT DATA FOR ANIMALS & PLANTS
 interim_data <-
