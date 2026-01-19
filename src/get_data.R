@@ -74,13 +74,6 @@ interim_data <-
   )
 
 # TRIM VALUES
-str_clean <- function(string) {
-  string <-
-    str_squish(string) |> # Trim + use single spaces
-    str_replace_all("; ", ";") |> # Remove space after ; separator
-    str_remove(";$") # Remove last ;
-  return(string)
-}
 interim_data <-
   interim_data |>
   mutate(
