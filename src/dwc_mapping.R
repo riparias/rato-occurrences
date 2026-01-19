@@ -46,4 +46,3 @@ occurrence <-
 
 # WRITE DATA
 write_csv(occurrence, here("data", "processed", "occurrence.csv"), na = "")
-
