@@ -41,12 +41,11 @@ jobs:
       - name: Setup pandoc
       - uses: r-lib/actions/setup-pandoc@v2
 
-
       - name: Install R packages
-        run: |
-          install.packages("remotes")
-          remotes::install_deps(upgrade = "always")
-        shell: Rscript {0}
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          cache: true
+          needs: check
 
       - name: Get data
         env:
