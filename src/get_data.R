@@ -52,8 +52,8 @@ coordinates <-
   sf::st_coordinates() |>
   as_tibble() |>
   rename(
-    latitude = X,
-    longitude = Y
+    latitude = Y,
+    longitude = X
   )
 interim_data <-
   bind_cols(interim_data, coordinates) |>
