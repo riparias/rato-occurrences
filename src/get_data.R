@@ -84,9 +84,9 @@ str_clean <- function(string) {
 interim_data <-
   interim_data |>
   mutate(
-    waarneming = str_clean(waarneming),
-    actie = str_clean(actie),
-    materiaal_vast = str_clean(materiaal_vast),
+    waarneming = str_squish(waarneming),
+    actie = str_squish(actie),
+    materiaal_vast = str_squish(materiaal_vast),
     global_id = str_remove_all(global_id, "\\{|\\}")
   )
 
@@ -121,17 +121,44 @@ interim_data <-
   ))
 
 # TRANSLATE MATERIAL
-material <- read_csv(here("data", "reference", "material.csv"))
-mapped_material <- as.character(pull(material, mapped_value))
-names(mapped_material) <- pull(material, input_value)
-
+# Separate values
 interim_data <-
   interim_data |>
   mutate(material = str_remove_all(materiaal_vast, " = [0-9]*")) |> # Remove numbers, in many cases they likely refer to dropdown value codes
-  mutate(material = str_replace_all(material, mapped_material)) |> # Map values
-  mutate(material = str_remove_all(material, "not_material")) |> # "Opvolging", "Verwenen", ...
-  mutate(material = str_clean(material)) |> # Remove last ;
-  mutate(material = str_replace_all(material, ";", " | ")) # Pipe separated
+  mutate(material = str_remove(material, ";$")) |> # Remove last ";"
+  separate(
+    material,
+    into = c("material_1", "material_2", "material_3", "material_4", "material_5"),
+    sep = "; ",
+    remove = TRUE,
+    convert = TRUE,
+    extra = "merge"
+  )
+
+# Map values
+material <- read_csv(here("data", "reference", "material.csv"))
+mapped_material <- as.character(pull(material, mapped_value))
+names(mapped_material) <- pull(material, input_value)
+interim_data <-
+  interim_data |>
+  mutate(
+    # See also https://github.com/tidyverse/dplyr/issues/6856
+    material_1 = recode(material_1, !!!mapped_material),
+    material_2 = recode(material_2, !!!mapped_material),
+    material_3 = recode(material_3, !!!mapped_material),
+    material_4 = recode(material_4, !!!mapped_material),
+    material_5 = recode(material_5, !!!mapped_material)
+  )
+
+# Concatenate values (unique, sorted, no NA)
+interim_data <-
+  interim_data |>
+  rowwise() |>
+  mutate(
+    material = list(sort(na.omit(unique(c(material_1, material_2, material_3, material_4, material_5))))),
+    material = paste(material, collapse = " | ")
+  ) |>
+  select(-starts_with("material_"))
 
 # ORDER DATA
 interim_data <-
