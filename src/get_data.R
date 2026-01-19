@@ -9,7 +9,7 @@ library(here)
 # GET LIVE DATA
 raw_data <- ratatouille(source = "rato")
 
-# SELECT DATA FOR ANIMALS & PLANTS
+# FILTER ON DATA FOR ANIMALS & PLANTS
 interim_data <-
   raw_data |>
   filter(Domein %in% c("Dier", "Plant"))
@@ -33,7 +33,7 @@ interim_data <-
   select(all_of(relevant_cols)) |>
   janitor::clean_names() # Convert to snake_case
 
-# SELECT SPECIES
+# FILTER ON SPECIES
 # Join with species reference data and filter on species we want to include
 species <- read_csv(here("data", "reference", "species.csv"))
 interim_data <-
@@ -112,6 +112,11 @@ interim_data <-
     # "Nevenvangst": is not an observation of the main species
   ))
 
+# FILTER ON CONFIRMED OBSERVATIONS
+interim_data <-
+  interim_data |>
+  filter(confirmed_observation)
+
 # ADD CATCH
 interim_data <-
   interim_data |>
@@ -169,4 +174,4 @@ interim_data <-
   )
 
 # WRITE DATA
-write_csv(interim_data, here("data", "interim", "interim.csv"), na = "")
+write_csv(interim_data, here("data", "interim", "confirmed_observations.csv"), na = "")
