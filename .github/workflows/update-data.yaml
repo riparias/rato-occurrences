@@ -48,7 +48,6 @@ jobs:
           install.packages("remotes")
           remotes::install_deps(upgrade = "always")
         shell: Rscript {0}
-        cache: true
 
       - name: Get data
         env:
