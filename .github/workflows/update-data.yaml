@@ -11,7 +11,7 @@ on:
 name: Update data
 
 jobs:
-  fetch-data:
+  update-data:
     runs-on: ${{ matrix.config.os }}
 
     name: ${{ matrix.config.os }} (${{ matrix.config.r }})
@@ -44,10 +44,11 @@ jobs:
       #  uses: r-lib/actions/setup-pandoc@v2
 
       - name: Install R packages
-        uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          cache: true
-          needs: check
+        run: |
+          install.packages("remotes")
+          remotes::install_deps(upgrade = "always")
+        shell: Rscript {0}
+        cache: true
 
       - name: Get data
         env:
