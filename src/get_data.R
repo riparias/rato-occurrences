@@ -38,6 +38,7 @@ interim_data <-
 species <- read_csv(here("data", "reference", "species.csv"))
 interim_data <-
   interim_data |>
+  mutate(soort = str_remove(str_squish(soort), ":$")) |> # Remove trailing ":"
   left_join(species, by = "soort") |>
   relocate(kingdom, scientific_name, taxon_rank, .after = "soort") |>
   filter(include) |>
@@ -123,7 +124,7 @@ interim_data <-
 interim_data <-
   interim_data |>
   mutate(material = str_remove_all(materiaal_vast, " = [0-9]*")) |> # Remove numbers, in many cases they likely refer to dropdown value codes
-  mutate(material = str_remove(material, ";$")) |> # Remove last ";"
+  mutate(material = str_remove(material, ";$")) |> # Remove trailing ";"
   separate(
     material,
     into = c("material_1", "material_2", "material_3", "material_4", "material_5"),
