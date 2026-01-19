@@ -2,7 +2,9 @@ on:
   schedule:
     - cron: "0 3 * * *"
   push:
-    branches: [main, ga-test] # TODO: Remove ga-test
+    branches:
+    - main
+    - ga_test # TODO: Remove
     paths:
     - src/*
   workflow_dispatch:
