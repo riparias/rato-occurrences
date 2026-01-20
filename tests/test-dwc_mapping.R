@@ -64,7 +64,7 @@ test_that("samplingProtocol has expected values", {
     occurrence |>
     tidyr::separate_wider_delim(
       samplingProtocol,
-      delim = " |",
+      delim = " | ",
       names = c("samp_1", "samp_2", "samp_3"), # Assume max 3
       too_few = "align_start",
       too_many = "merge",
