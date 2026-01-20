@@ -14,18 +14,20 @@ This repository contains the functionality to standardize the daily operations b
 
 ### [Update data](https://github.com/riparias/rato-occurrences/actions/workflows/update-data.yaml) GitHub Action
 
-1. [src/get_data.R](src/get_data.R): Get the latest data from RATO and write as [interim data](data/interim).
-2. [src/dwc_mapping.R](src/dwc_mapping.R): Map the data to Darwin Core and write as [processed data](data/processed).
-3. Create PR with the changes.
+1. Triggers every month (or manually).
+2. [src/get_data.R](src/get_data.R): Gets the latest data from RATO and write as [interim data](data/interim).
+3. [src/dwc_mapping.R](src/dwc_mapping.R): Maps the data to Darwin Core and write as [processed data](data/processed).
+4. Creates a PR with the changes.
 
 ### [Run tests](https://github.com/riparias/rato-occurrences/actions/workflows/run-tests.yaml) GitHub Action
 
-1. [test/test-dwc_mapping.R](test/test-dwc_mapping.R): Test the Darwin Core mapping.
-2. Comment on the PR with test results.
+1. Triggers on a PR (or manually).
+1. [test/test-dwc_mapping.R](test/test-dwc_mapping.R): Tests the Darwin Core mapping.
+2. Comments on the PR with test results.
 
 ### [INBO IPT](https://ipt.inbo.be/resource?r=rato-occurrences)
 
-1. Periodically read data from this repository and auto-publish.
+1. Periodically reads data from this repository and auto-publish.
 
 ## Published dataset
 
