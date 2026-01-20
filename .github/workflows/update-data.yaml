@@ -67,7 +67,7 @@ jobs:
           github_token: ${{ secrets.GH_TOKEN }}
           target_branch: main
           title: "[AUTO] Update data"
-          template: .github/PULL_REQUEST_TEMPLATE.md
+          template: .github/PULL_REQUEST_AUTO.md
           reviewer: PietrH
           label: automated workflow
           get_diff: false
