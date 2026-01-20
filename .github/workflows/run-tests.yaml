@@ -37,13 +37,10 @@ jobs:
         shell: Rscript {0}
 
       - name: Comment on PR
-        uses: actions/github-script@v7
+        uses: mshick/add-pr-comment@v2
         with:
           github-token: ${{ secrets.GH_TOKEN }}
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '✅ All tests passed'
-            })
+          message: |
+            ✅ All tests passed.
+          message-failure: |
+            ❌ Tests failed. See [GitHub Actions](https://github.com/riparias/rato-occurrences/actions/workflows/run-tests.yaml).
