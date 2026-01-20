@@ -34,19 +34,16 @@ jobs:
           needs: check
           install-pandoc: false # No Rmd
 
-      # - name: Get data
-      #   env:
-      #     RATO_USER: ${{ secrets.RATO_USER }}
-      #     RATO_PWD: ${{ secrets.RATO_PWD }}
-      #     RATO_API_CAPACITY: 1500
-      #   run: |
-      #     source("src/get_data.R")
-      #   shell: Rscript {0}
-
-      - name: Map data to Darwin Core
+      - name: Get the latest data
         env:
           RATO_USER: ${{ secrets.RATO_USER }}
           RATO_PWD: ${{ secrets.RATO_PWD }}
+          RATO_API_CAPACITY: 1500
+        run: |
+          source("src/get_data.R")
+        shell: Rscript {0}
+
+      - name: Map data to Darwin Core
         run: |
           source("src/dwc_mapping.R")
         shell: Rscript {0}
