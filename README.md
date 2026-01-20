@@ -23,7 +23,7 @@ This repository contains the functionality to standardize the daily operations b
 
 1. Triggers on a PR (or manually).
 1. [test/test-dwc_mapping.R](test/test-dwc_mapping.R): Tests the Darwin Core mapping.
-2. Comments on the PR with test results.
+2. Returns test results in PR.
 
 ### [INBO IPT](https://ipt.inbo.be/resource?r=rato-occurrences)
 

@@ -32,11 +32,12 @@ jobs:
           source("tests/test-dwc_mapping.R")
         shell: Rscript {0}
 
-      - name: Comment on PR
-        uses: mshick/add-pr-comment@v2
-        with:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          message: |
-            ✅ All tests passed.
-          message-failure: |
-            ❌ Tests failed. See [GitHub Actions](https://github.com/riparias/rato-occurrences/actions/workflows/run-tests.yaml).
+      # Next step is not needed, since workflow will report as PR check
+      # - name: Comment on PR
+      #   uses: mshick/add-pr-comment@v2
+      #   with:
+      #     GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      #     message: |
+      #       ✅ All tests passed.
+      #     message-failure: |
+      #       ❌ Tests failed.
