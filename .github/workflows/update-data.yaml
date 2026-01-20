@@ -25,9 +25,6 @@ jobs:
       - name: Setup R
         uses: r-lib/actions/setup-r@v2
         with:
-
-      - name: Setup pandoc
-        uses: r-lib/actions/setup-pandoc@v2
           use-public-rspm: true
 
       - name: Install R packages
@@ -35,6 +32,7 @@ jobs:
         with:
           cache: true
           needs: check
+          install-pandoc: false # No Rmd
 
       # - name: Get data
       #   env:
