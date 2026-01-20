@@ -5,9 +5,11 @@
 [![R-CMD-check](https://github.com/riparias/rato-occurrences/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/riparias/rato-occurrences/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
+# RATO - Daily operations commissioned by the province East Flanders, Belgium
+
 ## Rationale
 
-This repository contains the functionality to standardize the occurrences data of [RATO vzw](https://oost-vlaanderen.be/wonen-en-leven/natuur-en-milieu/overlastsoorten/rattenbestrijding-.html) to a [Darwin Core Archive](https://ipt.gbif.org/manual/en/ipt/2.5/dwca-guide) that can be harvested by a [GBIF IPT](https://ipt.gbif.org/manual/en/ipt/2.5/).
+This repository contains the functionality to standardize the daily operations by [RATO vzw](https://oost-vlaanderen.be/wonen-en-leven/natuur-en-milieu/overlastsoorten/rattenbestrijding-.html) to a Darwin Core occurrence dataset that can be harvested by a GBIF IPT.
 
 ## Workflow
 
