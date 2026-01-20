@@ -39,7 +39,7 @@ jobs:
       - name: Comment on PR
         uses: mshick/add-pr-comment@v2
         with:
-          github-token: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           message: |
             ✅ All tests passed.
           message-failure: |
