@@ -1,5 +1,8 @@
 # READ INTERIM DATA
-interim_data <- readr::read_csv(here::here("data", "interim", "confirmed_observations.csv"))
+interim_data <- readr::read_csv(
+  here::here("data", "interim", "confirmed_observations.csv"),
+  show_col_types = FALSE
+)
 
 # MAP TO DARWIN CORE
 occurrence <-

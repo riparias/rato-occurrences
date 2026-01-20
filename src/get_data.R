@@ -27,7 +27,10 @@ interim_data <-
 
 # FILTER ON SPECIES
 # Join with species reference data and filter on species we want to include
-species <- readr::read_csv(here::here("data", "reference", "species.csv"))
+species <- readr::read_csv(
+  here::here("data", "reference", "species.csv"),
+  show_col_types = FALSE
+)
 interim_data <-
   interim_data |>
   dplyr::mutate(soort = stringr::str_remove(stringr::str_squish(soort), ":$")) |> # Remove trailing ":"
@@ -127,7 +130,10 @@ interim_data <-
   )
 
 # Map values
-material <- readr::read_csv(here::here("data", "reference", "material.csv"))
+material <- readr::read_csv(
+  here::here("data", "reference", "material.csv"),
+  show_col_types = FALSE
+)
 mapped_material <- as.character(dplyr::pull(material, mapped_value))
 names(mapped_material) <- dplyr::pull(material, input_value)
 interim_data <-
