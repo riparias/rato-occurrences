@@ -1,6 +1,6 @@
 on:
   schedule:
-    - cron: "0 3 * * *"
+  - cron: "0 3 */7 * *" # At 3 am every 7th day of month
   push:
     branches:
     - main
