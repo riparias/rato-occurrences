@@ -117,13 +117,13 @@ interim_data <-
   interim_data |>
   dplyr::mutate(material = stringr::str_remove_all(materiaal_vast, " = [0-9]*")) |> # Remove numbers, in many cases they likely refer to dropdown value codes
   dplyr::mutate(material = stringr::str_remove(material, ";$")) |> # Remove trailing ";"
-  tidyr::separate(
+  tidyr::separate_wider_delim(
     material,
-    into = c("material_1", "material_2", "material_3", "material_4", "material_5"),
-    sep = "; ",
-    remove = TRUE,
-    convert = TRUE,
-    extra = "merge"
+    delim = "; ",
+    names = c("material_1", "material_2", "material_3", "material_4", "material_5"),
+    too_few = "align_start",
+    too_many = "merge",
+    cols_remove = TRUE
   )
 
 # Map values

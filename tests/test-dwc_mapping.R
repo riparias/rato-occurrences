@@ -62,13 +62,13 @@ test_that("samplingProtocol has expected values", {
   )
   sampling_protocol_values <-
     occurrence |>
-    tidyr::separate(
+    tidyr::separate_wider_delim(
       samplingProtocol,
-      into = c("samp_1", "samp_2", "samp_3"), # Assume max 3
-      sep = " \\| ",
-      remove = TRUE,
-      convert = TRUE,
-      extra = "merge"
+      delim = " |",
+      names = c("samp_1", "samp_2", "samp_3"), # Assume max 3
+      too_few = "align_start",
+      too_many = "merge",
+      cols_remove = TRUE
     ) |>
     tidyr::pivot_longer(
       cols = dplyr::starts_with("samp_"),
