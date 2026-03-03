@@ -24,7 +24,11 @@ occurrence <-
     parentEventID = dossier_id,
     eventType = dplyr::if_else(catch, "Trap", ""), # cf. https://registry.gbif-test.org/vocabulary/EventType/concept/Trap
     eventDate = laatst_bewerkt_datum, # readr will write as YYYY-MM-DDTHH:MM:SSZ
-    samplingProtocol = material,
+    samplingProtocol = dplyr::case_when(
+      !is.na(catch) & !is.na(material) ~ paste("catch with:", material),
+      !is.na(catch) ~ "catch",
+      .default = material
+    ),
     # No reliable data for samplingEffort
     countryCode = "BE",
     municipality = gemeente,
