@@ -62,9 +62,10 @@ test_that("samplingProtocol has expected material values", {
   )
   sampling_protocol_values <-
     occurrence |>
+    dplyr::distinct(samplingProtocol) |>
     dplyr::mutate(
-      samplingProtocol = stringr::str_remove(samplingProtocol, "^catch with: "),
-      samplingProtocol = stringr::str_remove(samplingProtocol, "^catch")
+      samplingProtocol = stringr::str_replace(samplingProtocol, "^catch$", NA_character_),
+      samplingProtocol = stringr::str_remove(samplingProtocol, "^catch with: ")
     ) |>
     tidyr::separate_wider_delim(
       samplingProtocol,
@@ -79,7 +80,6 @@ test_that("samplingProtocol has expected material values", {
       names_to = NULL,
       values_to = "samp"
     ) |>
-    dplyr::select(samp) |>
     dplyr::distinct(samp) |>
     dplyr::pull()
 
