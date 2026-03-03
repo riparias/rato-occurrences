@@ -22,7 +22,7 @@ occurrence <-
     occurrenceStatus = "present",
     eventID = global_id, # Alternatively objectid
     parentEventID = dossier_id,
-    eventType = dplyr::if_else(catch, "catch", "observation"),
+    eventType = dplyr::if_else(catch, "Trap", ""), # cf. https://registry.gbif-test.org/vocabulary/EventType/concept/Trap
     eventDate = laatst_bewerkt_datum, # readr will write as YYYY-MM-DDTHH:MM:SSZ
     samplingProtocol = material,
     # No reliable data for samplingEffort
