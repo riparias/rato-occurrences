@@ -45,7 +45,7 @@ test_that("occurrenceID is unique", {
   )
 })
 
-test_that("samplingProtocol has expected values", {
+test_that("samplingProtocol has expected material values", {
   expected_material <- c(
     "bins and tubes",
     "cage",
@@ -62,6 +62,11 @@ test_that("samplingProtocol has expected values", {
   )
   sampling_protocol_values <-
     occurrence |>
+    dplyr::distinct(samplingProtocol) |>
+    dplyr::mutate(
+      samplingProtocol = stringr::str_replace(samplingProtocol, "^catch$", NA_character_),
+      samplingProtocol = stringr::str_remove(samplingProtocol, "^catch with: ")
+    ) |>
     tidyr::separate_wider_delim(
       samplingProtocol,
       delim = " | ",
@@ -75,7 +80,6 @@ test_that("samplingProtocol has expected values", {
       names_to = NULL,
       values_to = "samp"
     ) |>
-    dplyr::select(samp) |>
     dplyr::distinct(samp) |>
     dplyr::pull()
 
