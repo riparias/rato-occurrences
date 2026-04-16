@@ -11,9 +11,9 @@ Authors@R: c(
     person("Peter", "Desmet", , "peter.desmet@inbo.be", role = "ctb",
            comment = c(ORCID = "0000-0002-8442-8025"))
   )
-Description: This repository contains the functionality to standardize the daily
-    operations by RATO vzw to a Darwin Core occurrence dataset that can be
-    harvested by a GBIF IPT.
+Description: This repository contains the functionality to standardize the 
+    management actions by RATO vzw to a Darwin Core occurrence dataset that can
+    be harvested by a GBIF IPT.
 License: MIT + file LICENSE
 Depends: 
     R (>= 3.5)

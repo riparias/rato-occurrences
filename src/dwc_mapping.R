@@ -14,7 +14,7 @@ occurrence <-
     rightsHolder = "RATO",
     datasetID = "https://doi.org/10.15468/fw2rbx",
     institutionCode	= "RATO",
-    datasetName	= "RATO - Daily operations commissioned by the province East Flanders, Belgium",
+    datasetName	= "Management actions by RATO in East Flanders, Belgium",
     basisOfRecord	= "HumanObservation",
     occurrenceID = global_id,
     recordedBy = "RATO",
