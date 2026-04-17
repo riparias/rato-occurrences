@@ -26,7 +26,7 @@ interim_data <-
   janitor::clean_names() # Convert to snake_case
 
 # FILTER ON SPECIES
-# Join with species reference data and filter on species we want to include
+# Join with species reference data and filter on species we want to include (and new species)
 species <- readr::read_csv(
   here::here("data", "reference", "species.csv"),
   show_col_types = FALSE
@@ -36,7 +36,12 @@ interim_data <-
   dplyr::mutate(soort = stringr::str_remove(stringr::str_squish(soort), ":$")) |> # Remove trailing ":"
   dplyr::left_join(species, by = "soort") |>
   dplyr::relocate(kingdom, scientific_name, taxon_rank, .after = "soort") |>
-  dplyr::filter(include) |>
+  dplyr::filter(include | is.na(include))
+
+# Set any unmapped "soort" as "scientific_name" (this should cause tests to fail)
+interim_data <-
+  interim_data |>
+  dplyr::mutate(scientific_name = dplyr::if_else(is.na(include), soort, scientific_name)) |>
   dplyr::select(-include)
 
 # CONVERT COORDINATES
