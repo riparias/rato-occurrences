@@ -34,6 +34,7 @@ jobs:
           install-pandoc: false # No Rmd
 
       - name: Get the latest data
+        id: fetch_data
         env:
           RATO_USER: ${{ secrets.RATO_USER }}
           RATO_PWD: ${{ secrets.RATO_PWD }}
@@ -41,14 +42,80 @@ jobs:
         run: |
           source("src/get_data.R")
         shell: Rscript {0}
+      
+      - name: Create issue if fetch data fails
+        if: steps.fetch_data.outcome == 'failure'
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '[AUTO] Data fetch failed',
+              body: `This is an automated issue.\n\nThe data fetching step failed in the workflow run.\n\nFailed run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              labels: ['automated workflow', 'fetch']
+            })
+            core.setFailed('Data fetch failed')
 
+      - name: Check for fetched data changes
+        id: fetch_changes
+        run: |
+          if git status --porcelain | grep -q .; then
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            echo "No changes detected after fetching data."
+          fi
+      
       - name: Map data to Darwin Core
+        if: steps.fetch_changes.outputs.has_changes == 'true'
+        id: dwc_mapping
         run: |
           source("src/dwc_mapping.R")
         shell: Rscript {0}
+      
+      - name: Create issue if mapping fails
+        if: steps.dwc_mapping.outcome == 'failure'
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '[AUTO] Mapping failed',
+              body: `This is an automated issue.\n\nThe DwC mapping step failed in the workflow run.\n\nFailed run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              labels: ['automated workflow', 'mapping']
+            })
+            core.setFailed('DwC mapping failed')
+      
+      - name: Run tests
+        if: steps.fetch_changes.outputs.has_changes == 'true'
+        id: run_tests
+        run: |
+          source("tests/test-dwc_mapping.R")
+        shell: Rscript {0}
+        continue-on-error: true
+      
+      - name: Create issue if tests fail
+        if: steps.run_tests.outcome == 'failure'
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '[AUTO] Tests failed',
+              body: `This is an automated issue.\n\nThe tests failed in the workflow run.\n\nFailed run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              labels: ['automated workflow', 'testing']
+            })
+            core.setFailed('Tests failed')
 
       - name: Commit and push changes
-        uses: devops-infra/action-commit-push@master
+        if: steps.fetch_changes.outputs.has_changes == 'true' && steps.run_tests.outcome == 'success'
+        uses: devops-infra/action-commit-push@f066ea8e19660de57d3d3a4a0b9d294ea2612e20 # v1.5.0
         with:
           github_token: ${{ secrets.GH_TOKEN }}
           commit_message: "[AUTO] Update data"
@@ -56,16 +123,52 @@ jobs:
           add_timestamp: true
 
       - name: Get branch name
+        if: steps.fetch_changes.outputs.has_changes == 'true' && steps.run_tests.outcome == 'success'
         run: |
           git branch --show-current
 
       - name: Create pull request
-        uses: devops-infra/action-pull-request@v1.0.2
+        if: steps.fetch_changes.outputs.has_changes == 'true' && steps.run_tests.outcome == 'success'
+        uses: actions/github-script@v9
         with:
-          github_token: ${{ secrets.GH_TOKEN }}
-          target_branch: main
-          title: "[AUTO] Update data"
-          template: .github/PULL_REQUEST_TEMPLATE_AUTO.md
-          reviewer: LienReyserhove
-          label: automated workflow
-          get_diff: false
+          github-token: ${{ github.token }}
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const branchName = '${{ steps.branch_name.outputs.name }}';
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            
+            // Read PR template
+            const templatePath = path.join(process.env.GITHUB_WORKSPACE, '.github/PULL_REQUEST_TEMPLATE.md');
+            let prBody = '';
+            try {
+              prBody = fs.readFileSync(templatePath, 'utf8');
+            } catch {
+              prBody = 'Automated data update.';
+            }
+            prBody += `\n\n---\n\nWorkflow run: ${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
+            
+            // Create PR
+            const { data: pr } = await github.rest.pulls.create({
+              owner, repo,
+              title: '[AUTO] Update data',
+              head: branchName,
+              base: 'main',
+              body: prBody
+            });
+            
+            // Add labels
+            await github.rest.issues.addLabels({
+              owner, repo,
+              issue_number: pr.number,
+              labels: ['automated workflow', 'approved']
+            });
+            
+            // Merge PR
+            await github.rest.pulls.merge({
+              owner, repo,
+              pull_number: pr.number,
+              commit_title: '[AUTO] Merge data update',
+              merge_method: 'merge'
+            });
