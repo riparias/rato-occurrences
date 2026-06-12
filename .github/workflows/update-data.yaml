@@ -132,7 +132,7 @@ jobs:
         id: branch_name
         if: steps.fetch_changes.outputs.has_changes == 'true' && steps.run_tests.outcome == 'success'
         run: |
-          git branch --show-current
+          echo "name=$(git branch --show-current)" >> "$GITHUB_OUTPUT"
 
       - name: Create pull request
         if: steps.fetch_changes.outputs.has_changes == 'true' && steps.run_tests.outcome == 'success'
