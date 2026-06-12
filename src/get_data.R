@@ -28,7 +28,7 @@ interim_data <-
 # FILTER ON SPECIES
 # Join with species reference data and filter on species we want to include (and new species)
 species <- readr::read_csv(
-  here::here("data", "reference", "species.csv"),
+  here::here("data", "reference", "species.tsv"),
   show_col_types = FALSE
 )
 interim_data <-
