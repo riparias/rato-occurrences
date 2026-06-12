@@ -5,7 +5,7 @@ occurrence <- readr::read_csv(here::here("data", "processed", "occurrence.csv"))
 
 test_that("Columns are expected Darwin Core terms", {
   expected_cols <- c(
-    "type",
+    "typ",
     "license",
     "rightsHolder",
     "datasetID",
