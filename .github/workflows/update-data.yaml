@@ -120,6 +120,7 @@ jobs:
             core.setFailed('Tests failed')
 
       - name: Commit and push changes
+        id: commit_push
         if: steps.fetch_changes.outputs.has_changes == 'true' && steps.run_tests.outcome == 'success'
         uses: devops-infra/action-commit-push@f066ea8e19660de57d3d3a4a0b9d294ea2612e20 # v1.5.0
         with:
@@ -127,12 +128,6 @@ jobs:
           commit_message: "[AUTO] Update data"
           target_branch: automatic-update
           add_timestamp: true
-
-      - name: Get branch name
-        id: branch_name
-        if: steps.fetch_changes.outputs.has_changes == 'true' && steps.run_tests.outcome == 'success'
-        run: |
-          git branch --show-current
 
       - name: Create pull request
         if: steps.fetch_changes.outputs.has_changes == 'true' && steps.run_tests.outcome == 'success'
@@ -142,7 +137,7 @@ jobs:
           script: |
             const fs = require('fs');
             const path = require('path');
-            const branchName = '${{ steps.branch_name.outputs.name }}';
+            const branchName = '${{ steps.commit_push.outputs.branch_name }}';
             const owner = context.repo.owner;
             const repo = context.repo.repo;
             
