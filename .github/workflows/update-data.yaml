@@ -42,7 +42,8 @@ jobs:
         run: |
           source("src/get_data.R")
         shell: Rscript {0}
-      
+        continue-on-error: true
+
       - name: Create issue if fetch data fails
         if: steps.fetch_data.outcome == 'failure'
         uses: actions/github-script@v9
@@ -67,14 +68,15 @@ jobs:
             echo "has_changes=false" >> "$GITHUB_OUTPUT"
             echo "No changes detected after fetching data."
           fi
-      
+
       - name: Map data to Darwin Core
         if: steps.fetch_changes.outputs.has_changes == 'true'
         id: dwc_mapping
         run: |
           source("src/dwc_mapping.R")
         shell: Rscript {0}
-      
+        continue-on-error: true
+
       - name: Create issue if mapping fails
         if: steps.dwc_mapping.outcome == 'failure'
         uses: actions/github-script@v9
@@ -89,7 +91,7 @@ jobs:
               labels: ['automated workflow', 'mapping']
             })
             core.setFailed('DwC mapping failed')
-      
+
       - name: Run tests
         if: steps.fetch_changes.outputs.has_changes == 'true'
         id: run_tests
@@ -103,7 +105,7 @@ jobs:
           }
         shell: Rscript {0}
         continue-on-error: true
-      
+
       - name: Create issue if tests fail
         if: steps.run_tests.outcome == 'failure'
         uses: actions/github-script@v9
@@ -145,7 +147,7 @@ jobs:
             const branchName = '${{ steps.branch_name.outputs.name }}';
             const owner = context.repo.owner;
             const repo = context.repo.repo;
-            
+
             // Read PR template
             const templatePath = path.join(process.env.GITHUB_WORKSPACE, '.github/PULL_REQUEST_TEMPLATE.md');
             let prBody = '';
@@ -155,7 +157,7 @@ jobs:
               prBody = 'Automated data update.';
             }
             prBody += `\n\n---\n\nWorkflow run: ${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
-            
+
             // Create PR
             const { data: pr } = await github.rest.pulls.create({
               owner, repo,
@@ -164,14 +166,14 @@ jobs:
               base: 'main',
               body: prBody
             });
-            
+
             // Add labels
             await github.rest.issues.addLabels({
               owner, repo,
               issue_number: pr.number,
               labels: ['automated workflow', 'approved']
             });
-            
+
             // Merge PR
             await github.rest.pulls.merge({
               owner, repo,
