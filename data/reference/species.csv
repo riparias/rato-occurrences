@@ -2,8 +2,8 @@ soort,include,kingdom,scientific_name,taxon_rank
 Amerikaanse Nerts,TRUE,Animalia,Neovison vison,species
 Amerikaanse Stierkikker,TRUE,Animalia,Lithobates catesbeianus,species
 Andere (soort vermelden),FALSE,,,
-Andere (soort vermelden): Eend,FALSE,Animalia,,
 Andere (soort vermelden): Kraaien,FALSE,Animalia,Corvidae,family
+Andere (soort vermelden): Wild eenden,FALSE,Animalia,,
 Aziatische hoornaar,FALSE,Animalia,Vespa velutina,species
 Aziatische hoornaar actie,FALSE,Animalia,Vespa velutina,species
 Bever,TRUE,Animalia,Castor fiber,species
@@ -31,6 +31,7 @@ Mollen,TRUE,Animalia,Talpa europaea,species
 Muizen,FALSE,Animalia,Muridae,family
 Muskusrat,TRUE,Animalia,Ondatra zibethicus,species
 Neerhofdier(en),FALSE,Animalia,,
+Neerhofdier(en): Pauw,FALSE,Animalia,,
 Nijlgans,TRUE,Animalia,Alopochen aegyptiaca,species
 Parelvederkruid,TRUE,Plantae,Myriophyllum aquaticum,species
 Reuzenbalsemien,TRUE,Plantae,Impatiens glandulifera,species
