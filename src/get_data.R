@@ -34,6 +34,7 @@ species <- readr::read_csv(
 interim_data <-
   interim_data |>
   dplyr::mutate(soort = stringr::str_remove(stringr::str_squish(soort), ":$")) |> # Remove trailing ":"
+  dplyr::filter(!is.na(soort)) |> # Remove empty "soort" before matching
   dplyr::left_join(species, by = "soort") |>
   dplyr::relocate(kingdom, scientific_name, taxon_rank, .after = "soort") |>
   dplyr::filter(include | is.na(include))
