@@ -149,7 +149,7 @@ jobs:
             const repo = context.repo.repo;
 
             // Read PR template
-            const templatePath = path.join(process.env.GITHUB_WORKSPACE, '.github/PULL_REQUEST_TEMPLATE.md');
+            const templatePath = path.join(process.env.GITHUB_WORKSPACE, '.github/PULL_REQUEST_TEMPLATE_AUTO.md');
             let prBody = '';
             try {
               prBody = fs.readFileSync(templatePath, 'utf8');
