@@ -14,7 +14,7 @@ This repository contains the functionality to standardize the management actions
 
 ### [Update data](https://github.com/riparias/rato-occurrences/actions/workflows/update-data.yaml) GitHub Action
 
-1. Triggers every month (or manually).
+1. Triggers every Monday (or manually).
 2. [src/get_data.R](src/get_data.R): Gets the latest data from RATO and write as [interim data](data/interim).
 3. [src/dwc_mapping.R](src/dwc_mapping.R): Maps the data to Darwin Core and write as [processed data](data/processed).
 4. Creates a PR with the changes.
