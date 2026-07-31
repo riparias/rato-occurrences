@@ -148,23 +148,13 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
 
-            // Read PR template
-            const templatePath = path.join(process.env.GITHUB_WORKSPACE, '.github/PULL_REQUEST_TEMPLATE_AUTO.md');
-            let prBody = '';
-            try {
-              prBody = fs.readFileSync(templatePath, 'utf8');
-            } catch {
-              prBody = 'Automated data update.';
-            }
-            prBody += `\n\n---\n\nWorkflow run: ${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
-
             // Create PR
             const { data: pr } = await github.rest.pulls.create({
               owner, repo,
               title: '[AUTO] Update data',
               head: branchName,
               base: 'main',
-              body: prBody
+              body: `This is an automated data update.\n\n---\n\nWorkflow run: ${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`
             });
 
             // Add labels
