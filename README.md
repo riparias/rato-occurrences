@@ -15,15 +15,13 @@ This repository contains the functionality to standardize the management actions
 ### [Update data](https://github.com/riparias/rato-occurrences/actions/workflows/update-data.yaml) GitHub Action
 
 1. Triggers every Monday (or manually).
-2. [src/get_data.R](src/get_data.R): Gets the latest data from RATO and write as [interim data](data/interim).
-3. [src/dwc_mapping.R](src/dwc_mapping.R): Maps the data to Darwin Core and write as [processed data](data/processed).
-4. Creates a PR with the changes.
-
-### [Run tests](https://github.com/riparias/rato-occurrences/actions/workflows/run-tests.yaml) GitHub Action
-
-1. Triggers on a PR (or manually).
-1. [test/test-dwc_mapping.R](test/test-dwc_mapping.R): Tests the Darwin Core mapping.
-2. Returns test results in PR.
+2. Get the latest data using [src/get_data.R](src/get_data.R) and creates an issue on failure.
+3. On success, writes the output to [interim data](data/interim) and stops if no changes were detected.
+4. Transforms the data to Darwin Core using [src/dwc_mapping.R](src/dwc_mapping.R) and creates an issue on failure.
+5. On success, writes the output to [processed data](data/processed).
+6. Runs tests using [test/test-dwc_mapping.R](test/test-dwc_mapping.R) and creates an issue on failure.
+7. On success, creates a PR with the changes.
+8. Merges PR.
 
 ### [INBO IPT](https://ipt.inbo.be/resource?r=rato-occurrences)
 
