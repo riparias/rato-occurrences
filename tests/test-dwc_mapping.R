@@ -108,6 +108,7 @@ test_that("scientificName has expected values", {
     "Ondatra zibethicus",
     "Oryctolagus cuniculus",
     "Pistia stratiotes",
+    "Procyon lotor",
     "Psittacula krameri",
     "Rattus norvegicus",
     "Rattus rattus",
